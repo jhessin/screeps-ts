@@ -2,10 +2,35 @@
 
 // memory extension samples
 interface CreepMemory {
-  role: string;
-  room: string;
+  role: Roles;
+  room?: string;
   working: boolean;
 }
+
+interface SpawnMemory {
+  roles: { [roleName: string]: number };
+}
+
+declare enum Roles {
+  HARVESTER = 'harvester',
+  MINER = 'miner',
+  LORRY = 'lorry',
+  REPAIRER = 'repairer',
+  BUILDER = 'builder',
+  UPGRADER = 'upgrader',
+  SPECIALIST = 'specialist',
+}
+
+interface Role {
+  name: Roles;
+  body: BodyPartConstant[];
+  memory: CreepMemory;
+  run: (creep: Creep) => CreepActionReturnCode;
+}
+
+type RoleList = {
+  [name in Roles]: Role;
+};
 
 interface Memory {
   uuid: number;
