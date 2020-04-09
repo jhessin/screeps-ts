@@ -19,5 +19,14 @@
   },
   "[typescript]": {
     "editor.formatOnSave": true
+  },
+  "files.exclude": {
+    ".*cache": true,
+    "dist/": true,
+    "node_modules/": true,
+    "yarn.lock": true,
+    "README.md": true,
+    "screeps.sample.json": true,
+    "src/Traveler": true,
   }
 }
