@@ -5,6 +5,7 @@ interface CreepMemory {
   role: Roles;
   room?: string;
   working: boolean;
+  targetId?: string;
 }
 
 interface SpawnMemory {

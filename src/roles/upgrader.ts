@@ -1,4 +1,4 @@
-let role: Role = {
+let upgrader: Role = {
   body: [WORK, CARRY, MOVE],
   memory: {
     role: Roles.UPGRADER,
@@ -9,4 +9,4 @@ let role: Role = {
   },
 };
 
-export default role;
+export default upgrader;
