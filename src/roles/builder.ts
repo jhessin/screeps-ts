@@ -1,7 +1,7 @@
-let Harvester: Role = {
+let builder: Role = {
   body: [WORK, CARRY, MOVE],
   memory: {
-    role: Roles.HARVESTER,
+    role: Roles.BUILDER,
     working: true,
   },
   run: (creep: Creep) => {
@@ -9,4 +9,4 @@ let Harvester: Role = {
   },
 };
 
-export default Harvester;
+export default builder;
