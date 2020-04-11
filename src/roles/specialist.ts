@@ -1,4 +1,5 @@
 import { CreepsWithRole } from 'utils';
+import { RoleNames } from './roleNames';
 
 let specialist: Role = {
   body: [WORK, CARRY, MOVE],

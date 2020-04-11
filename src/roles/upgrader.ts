@@ -1,4 +1,5 @@
 import { CreepsWithRole } from 'utils';
+import { RoleNames } from './roleNames';
 
 let upgrader: Role = {
   body: [WORK, CARRY, MOVE],

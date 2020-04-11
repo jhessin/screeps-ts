@@ -77,7 +77,7 @@ export class Finder {
 
     if (structure) return structure;
 
-    let room = Game.rooms[this.pos.roomName];
-    return room.controller;
+    // let room = Game.rooms[this.pos.roomName];
+    // return room.controller;
   }
 }

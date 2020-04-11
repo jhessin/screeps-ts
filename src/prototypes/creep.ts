@@ -2,13 +2,19 @@ import { Finder } from 'utils';
 import roleList from 'roles';
 
 Creep.prototype.run = function() {
+  if (this.spawning) {
+    return ERR_BUSY;
+  }
+
   if (this.memory.working && this.store.energy === 0) {
     this.memory.working = false;
+    this.memory.sourceId = undefined;
   } else if (
     !this.memory.working &&
-    this.store.getUsedCapacity(RESOURCE_ENERGY) === 0
+    this.store.getFreeCapacity(RESOURCE_ENERGY) === 0
   ) {
     this.memory.working = true;
+    this.memory.targetId = undefined;
   }
 
   let role = roleList[this.memory.role];
@@ -37,7 +43,7 @@ Creep.prototype.sourceId = function() {
 };
 
 Creep.prototype.harvestFreeEnergy = function() {
-  let id = this.memory.targetId;
+  let id = this.memory.sourceId;
   let finder = new Finder(this);
   let target: EnergySource | null = id
     ? Game.getObjectById(id)
@@ -63,7 +69,7 @@ Creep.prototype.harvestFreeEnergy = function() {
 };
 
 Creep.prototype.harvestEnergy = function() {
-  let id = this.memory.targetId;
+  let id = this.memory.sourceId;
   let finder = new Finder(this);
   let target: EnergySource | null = id
     ? Game.getObjectById(id)
@@ -91,9 +97,10 @@ Creep.prototype.harvestEnergy = function() {
 Creep.prototype.storeFreeEnergy = function() {
   let id = this.memory.targetId;
   let finder = new Finder(this);
-  let target: Structure | void | null = id
-    ? Game.getObjectById(id)
-    : finder.FindClosestStorageFacility();
+  let target: Structure | void | null =
+    id !== undefined
+      ? Game.getObjectById(id)
+      : finder.FindClosestStorageFacility();
   if (target) {
     this.memory.targetId = target.id;
     let code = this.transfer(target, RESOURCE_ENERGY);

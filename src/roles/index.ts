@@ -6,6 +6,7 @@ import Repairer from './repairer';
 import WallRepairer from './wallRepairer';
 import Specialist from './specialist';
 import Upgrader from './upgrader';
+import { RoleNames } from './roleNames';
 
 let roleList: RoleList = {
   [RoleNames.HARVESTER]: Harvester,

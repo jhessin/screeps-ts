@@ -6,46 +6,12 @@ interface CreepMemory {
   room?: string;
   working: boolean;
   sourceId?: Id<EnergySource>;
-  targetId?: Id<Structure>;
+  targetId?: Id<Structure> | Id<ConstructionSite>;
   _trav?: Object;
 }
 
 interface SpawnMemory {
   roles?: { [roleName in RoleNames]: number };
-}
-
-declare enum RoleNames {
-  HARVESTER = 'harvester',
-  MINER = 'miner',
-  LORRY = 'lorry',
-  REPAIRER = 'repairer',
-  WALL_REPAIRER = 'wallRepairer',
-  BUILDER = 'builder',
-  UPGRADER = 'upgrader',
-  SPECIALIST = 'specialist',
-}
-
-interface Role {
-  body: BodyPartConstant[];
-  memory: CreepMemory;
-  work: (creep: Creep) => ScreepsReturnCode;
-  harvest: (creep: Creep) => ScreepsReturnCode;
-  creeps: () => Creep[];
-}
-
-type RoleList = {
-  [name in RoleNames]: Role;
-};
-
-interface HasStore {
-  store: StoreDefinition;
-}
-
-type EnergySource = Source | Resource | Structure | Ruin | Tombstone;
-
-interface Memory {
-  uuid: number;
-  log: any;
 }
 
 interface Creep {
@@ -75,9 +41,37 @@ interface StructureSpawn {
   roleDemand: (role: Role) => number;
 }
 
-// `global` extension samples
-declare namespace NodeJS {
-  interface Global {
-    log: any;
-  }
+// MINE
+declare enum RoleNames {
+  HARVESTER = 'harvester',
+  MINER = 'miner',
+  LORRY = 'lorry',
+  REPAIRER = 'repairer',
+  WALL_REPAIRER = 'wallRepairer',
+  BUILDER = 'builder',
+  UPGRADER = 'upgrader',
+  SPECIALIST = 'specialist',
+}
+
+type EnergySource = Source | Resource | Structure | Ruin | Tombstone;
+
+interface Role {
+  body: BodyPartConstant[];
+  memory: CreepMemory;
+  work: (creep: Creep) => ScreepsReturnCode;
+  harvest: (creep: Creep) => ScreepsReturnCode;
+  creeps: () => Creep[];
+}
+
+type RoleList = {
+  [name in RoleNames]: Role;
+};
+
+interface HasStore {
+  store: StoreDefinition;
+}
+
+interface Memory {
+  uuid: number;
+  log: any;
 }
