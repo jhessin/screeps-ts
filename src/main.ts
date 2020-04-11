@@ -21,6 +21,10 @@ export const loop = ErrorMapper.wrapLoop(() => {
     let spawn = Game.spawns[name];
 
     spawnAsNeeded(spawn);
+
+    let energy = spawn.room.energyAvailable;
+    let capacity = spawn.room.energyCapacityAvailable;
+    console.log(`${energy} of ${capacity} available for spawns`);
   }
 
   // Clean memory every 500 ticks.

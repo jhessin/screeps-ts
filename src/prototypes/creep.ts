@@ -2,6 +2,7 @@ import { Finder } from 'utils';
 import roleList from 'roles';
 
 Creep.prototype.run = function() {
+  validateTargets(this);
   if (this.spawning) {
     return ERR_BUSY;
   }
@@ -113,7 +114,7 @@ Creep.prototype.storeFreeEnergy = function() {
     return code;
   }
 
-  return ERR_NOT_FOUND;
+  return this.upgradeRoom();
 };
 
 Creep.prototype.upgradeRoom = function() {
@@ -132,3 +133,40 @@ Creep.prototype.upgradeRoom = function() {
 
   return ERR_NOT_FOUND;
 };
+
+function validateTargets(creep: Creep) {
+  // First sources - they must exist and must have energy
+  let sourceId = creep.sourceId();
+  if (sourceId) {
+    let source: HasStore | null = Game.getObjectById(sourceId);
+    if (!source) creep.memory.sourceId = undefined;
+    else if (
+      !(
+        source instanceof Source ||
+        source instanceof Ruin ||
+        source instanceof Tombstone ||
+        source instanceof Structure ||
+        source instanceof Resource
+      )
+    )
+      creep.memory.sourceId = undefined;
+    else if (
+      !source.store ||
+      source.store.getUsedCapacity(RESOURCE_ENERGY) === 0
+    )
+      creep.memory.sourceId = undefined;
+  }
+
+  // Now targets - they must exist - be structures - and either have a store needing energy or be a RoomController
+  let targetId = creep.targetId();
+  if (targetId) {
+    let target: HasStore | null = Game.getObjectById(targetId);
+    if (!target) creep.memory.targetId = undefined;
+    else if (!(target instanceof Structure)) creep.memory.targetId = undefined;
+    else if (
+      !target.store ||
+      target.store.getFreeCapacity(RESOURCE_ENERGY) === 0
+    )
+      creep.memory.targetId = undefined;
+  }
+}

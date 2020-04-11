@@ -9,14 +9,14 @@ import Upgrader from './upgrader';
 import { RoleNames } from './roleNames';
 
 let roleList: RoleList = {
+  [RoleNames.MINER]: Miner,
+  [RoleNames.LORRY]: Lorry,
+  [RoleNames.UPGRADER]: Upgrader,
   [RoleNames.HARVESTER]: Harvester,
   [RoleNames.BUILDER]: Builder,
-  [RoleNames.LORRY]: Lorry,
-  [RoleNames.MINER]: Miner,
   [RoleNames.REPAIRER]: Repairer,
   [RoleNames.WALL_REPAIRER]: WallRepairer,
   [RoleNames.SPECIALIST]: Specialist,
-  [RoleNames.UPGRADER]: Upgrader,
 };
 
 export default roleList;

@@ -2,7 +2,7 @@ import { CreepsWithRole } from 'utils';
 import { RoleNames } from './roleNames';
 
 let miner: Role = {
-  body: [WORK, WORK, WORK, WORK, WORK, MOVE],
+  body: [WORK, WORK, MOVE],
   memory: {
     role: RoleNames.MINER,
     working: true,
