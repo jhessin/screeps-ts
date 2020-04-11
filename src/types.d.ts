@@ -7,8 +7,7 @@ interface CreepMemory {
   working: boolean;
   sourceId?: Id<EnergySource>;
   targetId?: Id<Structure>;
-  _trav?: TravelData | Object | undefined;
-  _travel?: TravelData | Object | undefined;
+  _trav?: Object;
 }
 
 interface SpawnMemory {
