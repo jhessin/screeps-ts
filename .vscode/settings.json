@@ -8,7 +8,8 @@
     ".rpt2_cache/**": true,
     "dist/**": true,
     "node_modules/**": true,
-    "typings/**": true
+    "typings/**": true,
+    "src/Traveler/**": true
   },
   "typescript.tsdk": "./node_modules/typescript/lib",
   "[json]": {
@@ -26,7 +27,6 @@
     "node_modules/": true,
     "yarn.lock": true,
     "README.md": true,
-    "screeps.sample.json": true,
-    "src/Traveler": true,
+    "screeps.sample.json": true
   }
 }

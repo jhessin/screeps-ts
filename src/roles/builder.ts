@@ -1,11 +1,17 @@
+import { CreepsWithRole } from 'utils';
+
 let builder: Role = {
   body: [WORK, CARRY, MOVE],
   memory: {
-    role: Roles.BUILDER,
+    role: RoleNames.BUILDER,
     working: true,
   },
-  run: (creep: Creep) => {
-    return OK;
+  work: creep =>
+    // TODO build
+    creep.upgradeRoom(),
+  harvest: creep => creep.harvestEnergy(),
+  creeps: function() {
+    return CreepsWithRole(this);
   },
 };
 

@@ -1,11 +1,17 @@
+import { CreepsWithRole } from 'utils';
+
 let repairer: Role = {
   body: [WORK, CARRY, MOVE],
   memory: {
-    role: Roles.REPAIRER,
+    role: RoleNames.REPAIRER,
     working: true,
   },
-  run: (creep: Creep) => {
-    return OK;
+  harvest: creep => creep.harvestEnergy(),
+  work: creep =>
+    // TODO Repair
+    creep.upgradeRoom(),
+  creeps: function() {
+    return CreepsWithRole(this);
   },
 };
 

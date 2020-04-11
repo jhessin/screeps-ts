@@ -1,17 +1,13 @@
 export class Finder {
   pos: RoomPosition;
 
-  constructor(pos: RoomPosition | HasPos) {
-    if (pos instanceof RoomPosition) {
-      this.pos = pos;
-    } else {
-      this.pos = pos.pos;
-    }
+  constructor(pos: RoomObject) {
+    this.pos = pos.pos;
   }
 
-  public FindClosestFreeEnergy(): RoomObject | null {
+  public FindClosestFreeEnergy(): EnergySource | null {
     // First get the nearest dropped resources.
-    let energy: RoomObject | null = this.pos.findClosestByPath(
+    let energy: EnergySource | null = this.pos.findClosestByPath(
       FIND_DROPPED_RESOURCES,
     );
 
@@ -44,7 +40,7 @@ export class Finder {
     return energy;
   }
 
-  public FindClosestEnergy(): RoomObject | null {
+  public FindClosestEnergy(): EnergySource | null {
     // First get closest free energy if we can
     let energy = this.FindClosestFreeEnergy();
 
@@ -57,5 +53,31 @@ export class Finder {
     });
 
     return storage || energy;
+  }
+
+  public FindClosestStorageFacility(): Structure | void {
+    let structure: Structure | null = this.pos.findClosestByPath(
+      FIND_MY_STRUCTURES,
+      {
+        filter: s =>
+          (s instanceof StructureSpawn ||
+            s instanceof StructureExtension ||
+            s instanceof StructureTower) &&
+          s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+      },
+    );
+
+    if (structure) return structure;
+
+    structure = this.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+      filter: s =>
+        (s as HasStore).store &&
+        (s as HasStore).store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+    });
+
+    if (structure) return structure;
+
+    let room = Game.rooms[this.pos.roomName];
+    return room.controller;
   }
 }

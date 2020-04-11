@@ -1,27 +1,15 @@
-import { Finder } from 'utils';
-import { updateState } from 'utils/functions';
+import { CreepsWithRole } from 'utils';
 
 let harvester: Role = {
   body: [WORK, CARRY, MOVE],
   memory: {
-    role: Roles.HARVESTER,
+    role: RoleNames.HARVESTER,
     working: true,
   },
-  run: (creep: Creep) => {
-    updateState(creep);
-    let finder = new Finder(creep);
-
-    if (creep.memory.working) {
-      // TODO: find structure to store energy
-    } else {
-      // TODO: make a creep overload function that harvests energy
-      let id = creep.memory.targetId;
-      let target = id ? Game.getObjectById(id) : finder.FindClosestFreeEnergy();
-      if (target) {
-      }
-    }
-
-    return OK;
+  work: creep => creep.storeFreeEnergy(),
+  harvest: creep => creep.harvestFreeEnergy(),
+  creeps: function() {
+    return CreepsWithRole(this);
   },
 };
 

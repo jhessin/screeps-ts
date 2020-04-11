@@ -7,13 +7,15 @@ import WallRepairer from './wallRepairer';
 import Specialist from './specialist';
 import Upgrader from './upgrader';
 
-let RoleList: RoleList = {
-  [Roles.HARVESTER]: Harvester,
-  [Roles.BUILDER]: Builder,
-  [Roles.LORRY]: Lorry,
-  [Roles.MINER]: Miner,
-  [Roles.REPAIRER]: Repairer,
-  [Roles.WALL_REPAIRER]: WallRepairer,
-  [Roles.SPECIALIST]: Specialist,
-  [Roles.UPGRADER]: Upgrader,
+let roleList: RoleList = {
+  [RoleNames.HARVESTER]: Harvester,
+  [RoleNames.BUILDER]: Builder,
+  [RoleNames.LORRY]: Lorry,
+  [RoleNames.MINER]: Miner,
+  [RoleNames.REPAIRER]: Repairer,
+  [RoleNames.WALL_REPAIRER]: WallRepairer,
+  [RoleNames.SPECIALIST]: Specialist,
+  [RoleNames.UPGRADER]: Upgrader,
 };
+
+export default roleList;

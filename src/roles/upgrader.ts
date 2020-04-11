@@ -1,11 +1,15 @@
+import { CreepsWithRole } from 'utils';
+
 let upgrader: Role = {
   body: [WORK, CARRY, MOVE],
   memory: {
-    role: Roles.UPGRADER,
+    role: RoleNames.UPGRADER,
     working: true,
   },
-  run: (creep: Creep) => {
-    return OK;
+  harvest: creep => creep.harvestEnergy(),
+  work: creep => creep.upgradeRoom(),
+  creeps: function() {
+    return CreepsWithRole(this);
   },
 };
 

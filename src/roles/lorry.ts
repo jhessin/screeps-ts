@@ -1,11 +1,15 @@
+import { CreepsWithRole } from 'utils';
+
 let lorry: Role = {
-  body: [WORK, CARRY, MOVE],
+  body: [CARRY, CARRY, MOVE],
   memory: {
-    role: Roles.LORRY,
+    role: RoleNames.LORRY,
     working: true,
   },
-  run: (creep: Creep) => {
-    return OK;
+  work: creep => creep.storeFreeEnergy(),
+  harvest: creep => creep.harvestFreeEnergy(),
+  creeps: function() {
+    return CreepsWithRole(this);
   },
 };
 

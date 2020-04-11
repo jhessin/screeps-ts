@@ -2,17 +2,20 @@
 
 // memory extension samples
 interface CreepMemory {
-  role: Roles;
+  role: RoleNames;
   room?: string;
   working: boolean;
-  targetId?: string;
+  sourceId?: Id<EnergySource>;
+  targetId?: Id<Structure>;
+  _trav?: TravelData | Object | undefined;
+  _travel?: TravelData | Object | undefined;
 }
 
 interface SpawnMemory {
-  roles: { [roleName: string]: number };
+  roles?: { [roleName in RoleNames]: number };
 }
 
-declare enum Roles {
+declare enum RoleNames {
   HARVESTER = 'harvester',
   MINER = 'miner',
   LORRY = 'lorry',
@@ -26,16 +29,51 @@ declare enum Roles {
 interface Role {
   body: BodyPartConstant[];
   memory: CreepMemory;
-  run: (creep: Creep) => CreepActionReturnCode;
+  work: (creep: Creep) => ScreepsReturnCode;
+  harvest: (creep: Creep) => ScreepsReturnCode;
+  creeps: () => Creep[];
 }
 
 type RoleList = {
-  [name in Roles]: Role;
+  [name in RoleNames]: Role;
 };
+
+interface HasStore {
+  store: StoreDefinition;
+}
+
+type EnergySource = Source | Resource | Structure | Ruin | Tombstone;
 
 interface Memory {
   uuid: number;
   log: any;
+}
+
+interface Creep {
+  // shortcuts for memory objects
+  working: () => boolean;
+  role: () => RoleNames;
+  targetId: () => string | void;
+  sourceId: () => string | void;
+
+  // The generic run method that calls the appropriate role methods
+  run: () => ScreepsReturnCode;
+
+  // Harvest free energy -- Used by harvesters and lorries
+  harvestFreeEnergy: () => ScreepsReturnCode;
+  // Harvest work energy -- Used by everyone else
+  harvestEnergy: () => ScreepsReturnCode;
+
+  // Store free energy -- Used by both harvesters and lorries
+  storeFreeEnergy: () => ScreepsReturnCode;
+
+  // Universal fallback for all creeps.
+  upgradeRoom: () => ScreepsReturnCode;
+}
+
+interface StructureSpawn {
+  spawnRole: (role: Role, emergency?: boolean) => ScreepsReturnCode;
+  roleDemand: (role: Role) => number;
 }
 
 // `global` extension samples
