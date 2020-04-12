@@ -39,6 +39,7 @@ interface Creep {
 interface StructureSpawn {
   spawnRole: (role: Role, emergency?: boolean) => ScreepsReturnCode;
   roleDemand: (role: Role) => number;
+  spawnMiner: (emergency?: boolean) => ScreepsReturnCode;
 }
 
 // MINE

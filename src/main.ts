@@ -47,7 +47,7 @@ function cleanMemory() {
 function spawnAsNeeded(spawn: StructureSpawn) {
   // Emergency spawn
   if (roleList.miner.creeps().length === 0) {
-    return spawn.spawnRole(roleList.miner, true);
+    return spawn.spawnMiner(true);
   }
   if (roleList.lorry.creeps().length === 0) {
     return spawn.spawnRole(roleList.lorry, true);
@@ -62,6 +62,7 @@ function spawnAsNeeded(spawn: StructureSpawn) {
     console.log(`${creeps.length} of ${demand} ${name}: ${creeps}`);
 
     if (creeps.length < demand) {
+      if (name === RoleNames.MINER) return spawn.spawnMiner();
       return spawn.spawnRole(role);
     }
   }

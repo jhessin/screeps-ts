@@ -13,13 +13,6 @@ StructureSpawn.prototype.spawnRole = function(
   let numParts = Math.floor(energy / cost);
   let body: BodyPartConstant[] = [];
 
-  // Special case for miners
-  if (role.memory.role === RoleNames.MINER) {
-    return this.spawnCreep(role.body, getRandomName(), {
-      memory: role.memory,
-    });
-  }
-
   role.body.forEach(part => {
     for (let i = 0; i < numParts; i++) {
       body.push(part);
@@ -50,4 +43,25 @@ StructureSpawn.prototype.roleDemand = function(role: Role): number {
   }
 
   return this.memory.roles[role.memory.role];
+};
+
+StructureSpawn.prototype.spawnMiner = function(
+  emergency: boolean = false,
+): ScreepsReturnCode {
+  let energy = emergency
+    ? this.room.energyAvailable
+    : this.room.energyCapacityAvailable;
+  let role = roleList.miner;
+  let cost = bodyCost(role.body);
+  let numParts = Math.floor(energy / cost);
+  let body: BodyPartConstant[] = [];
+
+  while (bodyCost(role.body) > energy) {
+    role.body.shift();
+  }
+
+  // Special case for miners
+  return this.spawnCreep(role.body, getRandomName(), {
+    memory: role.memory,
+  });
 };
