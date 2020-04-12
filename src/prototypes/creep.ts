@@ -1,6 +1,6 @@
 import { Finder } from 'utils';
 import { BasicRoles, SpecialRoles } from 'roles';
-import { RoleNames } from 'roles/roleNames';
+import { RoleNames } from 'roles/RoleNames';
 
 Creep.prototype.run = function() {
   if (!validateSource(this)) this.memory.sourceId = undefined;

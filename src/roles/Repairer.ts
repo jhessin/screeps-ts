@@ -1,5 +1,5 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './roleNames';
+import { RoleNames } from './RoleNames';
 
 let repairer: Role = {
   body: [WORK, CARRY, MOVE],

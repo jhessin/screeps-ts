@@ -27,6 +27,7 @@
     "node_modules/": true,
     "yarn.lock": true,
     "README.md": true,
-    "screeps.sample.json": true
+    "screeps.sample.json": true,
+    "src/Traveler": true
   }
 }

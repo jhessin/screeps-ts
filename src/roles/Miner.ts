@@ -1,5 +1,5 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './roleNames';
+import { RoleNames } from './RoleNames';
 
 let miner: Role = {
   body: [WORK, WORK, WORK, WORK, WORK, MOVE],

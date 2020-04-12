@@ -1,5 +1,5 @@
 import { getRandomName } from 'names';
-import { RoleNames } from 'roles/roleNames';
+import { RoleNames } from 'roles/RoleNames';
 import { BasicRoles } from 'roles';
 
 StructureSpawn.prototype.spawnRole = function(

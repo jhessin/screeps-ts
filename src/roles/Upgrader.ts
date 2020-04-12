@@ -1,17 +1,17 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './roleNames';
+import { RoleNames } from './RoleNames';
 
-let specialist: Role = {
+let upgrader: Role = {
   body: [WORK, CARRY, MOVE],
   memory: {
-    role: RoleNames.SPECIALIST,
+    role: RoleNames.UPGRADER,
     working: true,
   },
   harvest: creep => creep.harvestEnergy(),
-  work: creep => creep.storeFreeEnergy(),
+  work: creep => creep.upgradeRoom(),
   creeps: function() {
     return CreepsWithRole(this);
   },
 };
 
-export default specialist;
+export default upgrader;

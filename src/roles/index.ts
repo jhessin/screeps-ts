@@ -1,10 +1,10 @@
-import Builder from './builder';
-import Lorry from './lorry';
-import Miner from './miner';
-import Repairer from './repairer';
-import WallRepairer from './wallRepairer';
-import Upgrader from './upgrader';
-import { RoleNames } from './roleNames';
+import Builder from './Builder';
+import Lorry from './Lorry';
+import Miner from './Miner';
+import Repairer from './Repairer';
+import WallRepairer from './WallRepairer';
+import Upgrader from './Upgrader';
+import { RoleNames } from './RoleNames';
 
 let basicRoles: RoleList = {
   [RoleNames.MINER]: Miner,
@@ -17,7 +17,7 @@ let basicRoles: RoleList = {
 
 export const BasicRoles = basicRoles;
 
-import Specialist from './specialist';
+import Specialist from './Specialist';
 
 export const SpecialRoles: RoleList = {
   [RoleNames.SPECIALIST]: Specialist,
