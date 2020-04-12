@@ -16,6 +16,12 @@ export const loop = ErrorMapper.wrapLoop(() => {
     runTower(tower as StructureTower);
   }
 
+  // Run all links
+  let links = _.filter(Game.structures, s => s instanceof StructureLink);
+  for (let link of links) {
+    runLink(link as StructureLink);
+  }
+
   // Run all the creeps
   for (let name in Game.creeps) {
     let creep = Game.creeps[name];
@@ -83,4 +89,20 @@ function runTower(tower: StructureTower) {
   let enemy = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 
   if (enemy) tower.attack(enemy);
+}
+
+function runLink(link: StructureLink) {
+  let targetFlag = Game.flags.linkTo;
+
+  if (!targetFlag) return;
+
+  let targetLink = targetFlag.pos.findInRange(FIND_MY_STRUCTURES, 0, {
+    filter: s => s instanceof StructureLink,
+  })[0];
+
+  if (!targetLink) return;
+
+  if (targetLink.id === link.id) return;
+
+  link.transferEnergy(targetLink as StructureLink);
 }
