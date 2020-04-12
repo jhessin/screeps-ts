@@ -9,6 +9,13 @@ import { RoleNames } from 'roles/roleNames';
 export const loop = ErrorMapper.wrapLoop(() => {
   console.log(`Current game tick is ${Game.time}`);
 
+  // Run the towers
+  let towers = _.filter(Game.structures, s => s instanceof StructureTower);
+
+  for (let tower of towers) {
+    runTower(tower as StructureTower);
+  }
+
   // Run all the creeps
   for (let name in Game.creeps) {
     let creep = Game.creeps[name];
@@ -68,4 +75,10 @@ function spawnAsNeeded(spawn: StructureSpawn) {
   }
 
   return OK;
+}
+
+function runTower(tower: StructureTower) {
+  let enemy = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+
+  if (enemy) tower.attack(enemy);
 }
