@@ -22,7 +22,10 @@ function mine(creep: Creep) {
         filter: s => {
           for (let name in Game.creeps) {
             let creep = Game.creeps[name];
-            if (creep.role() === RoleNames.MINER && creep.sourceId() === s.id)
+            if (
+              creep.memory.role === RoleNames.MINER &&
+              creep.memory.sourceId === s.id
+            )
               return false;
           }
           return true;
@@ -31,7 +34,7 @@ function mine(creep: Creep) {
 
   if (source) {
     creep.memory.sourceId = source.id;
-    let id = creep.targetId();
+    let id = creep.memory.targetId;
     let target: Structure | undefined | null = id
       ? Game.getObjectById(id)
       : source.pos.findInRange(FIND_STRUCTURES, 1, {

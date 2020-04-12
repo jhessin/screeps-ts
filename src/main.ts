@@ -1,7 +1,7 @@
 import { ErrorMapper } from 'utils';
 import 'prototypes';
 import './Traveler/Traveler';
-import roleList from 'roles';
+import basicRoles from 'roles';
 import { RoleNames } from 'roles/roleNames';
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
@@ -38,6 +38,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
   if (Game.time % 500 === 0) {
     cleanMemory();
   }
+
+  console.log(`Done: CPU LOAD: ${Game.cpu.getUsed()}`);
 });
 
 function cleanMemory() {
@@ -53,16 +55,16 @@ function cleanMemory() {
 
 function spawnAsNeeded(spawn: StructureSpawn) {
   // Emergency spawn
-  if (roleList.miner.creeps().length === 0) {
+  if (basicRoles.miner.creeps().length === 0) {
     return spawn.spawnMiner(true);
   }
-  if (roleList.lorry.creeps().length === 0) {
-    return spawn.spawnRole(roleList.lorry, true);
+  if (basicRoles.lorry.creeps().length === 0) {
+    return spawn.spawnRole(basicRoles.lorry, true);
   }
 
   // Regular spawning
-  for (let name in roleList) {
-    let role = roleList[name as RoleNames];
+  for (let name in basicRoles) {
+    let role = basicRoles[name as RoleNames];
 
     let creeps = role.creeps();
     let demand = spawn.roleDemand(role);

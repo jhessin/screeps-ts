@@ -1,9 +1,11 @@
 import { Finder } from 'utils';
-import roleList from 'roles';
+import basicRoles from 'roles';
 import { RoleNames } from 'roles/roleNames';
 
 Creep.prototype.run = function() {
-  validateTargets(this);
+  if (!validateSource(this)) this.memory.sourceId = undefined;
+  if (!validateTarget(this)) this.memory.targetId = undefined;
+
   if (this.spawning) {
     return ERR_BUSY;
   }
@@ -19,29 +21,13 @@ Creep.prototype.run = function() {
     this.memory.targetId = undefined;
   }
 
-  let role = roleList[this.memory.role];
+  let role = basicRoles[this.memory.role];
 
-  if (this.working()) {
+  if (this.memory.working) {
     return role.work(this);
   } else {
     return role.harvest(this);
   }
-};
-
-Creep.prototype.working = function() {
-  return this.memory.working;
-};
-
-Creep.prototype.role = function() {
-  return this.memory.role;
-};
-
-Creep.prototype.targetId = function() {
-  return this.memory.targetId;
-};
-
-Creep.prototype.sourceId = function() {
-  return this.memory.sourceId;
 };
 
 Creep.prototype.harvestFreeEnergy = function() {
@@ -132,47 +118,69 @@ Creep.prototype.upgradeRoom = function() {
   return ERR_NOT_FOUND;
 };
 
-function validateTargets(creep: Creep) {
+function validateSource(creep: Creep): boolean {
   // First sources - they must exist and must have energy
-  let sourceId = creep.sourceId();
-  if (sourceId) {
-    let source: HasStore | null = Game.getObjectById(sourceId);
-    if (!source) creep.memory.sourceId = undefined;
-    else if (
-      !(
-        source instanceof Source ||
-        source instanceof Ruin ||
-        source instanceof Tombstone ||
-        source instanceof Structure ||
-        source instanceof Resource
-      )
-    )
-      creep.memory.sourceId = undefined;
-    else if (
-      !source.store ||
-      source.store.getUsedCapacity(RESOURCE_ENERGY) === 0
-    )
-      creep.memory.sourceId = undefined;
-  }
+  let sourceId = creep.memory.sourceId;
+  if (!sourceId) return true;
+  let source = Game.getObjectById(sourceId);
 
+  if (!source) return false;
+
+  if (source instanceof Source && source.energy > 0) return true;
+  if (
+    (source instanceof Ruin || source instanceof Tombstone) &&
+    source.store.getUsedCapacity(RESOURCE_ENERGY) > 0
+  )
+    return true;
+
+  if (source instanceof Resource) return true;
+
+  if (
+    source instanceof StructureContainer &&
+    source.store.getUsedCapacity(RESOURCE_ENERGY) > 0
+  )
+    return true;
+
+  if (
+    source instanceof StructureLink &&
+    source.store.getUsedCapacity(RESOURCE_ENERGY) > 0
+  )
+    return true;
+
+  if (
+    source instanceof StructureStorage &&
+    source.store.getUsedCapacity(RESOURCE_ENERGY) > 0
+  )
+    return true;
+
+  if (
+    source instanceof StructureTerminal &&
+    source.store.getUsedCapacity(RESOURCE_ENERGY) > 0
+  )
+    return true;
+
+  return false;
+}
+
+function validateTarget(creep: Creep): boolean {
   // Now targets - they must exist - be structures - and either have a store needing energy or be a RoomController
-  let targetId = creep.targetId();
-  if (targetId) {
-    let target: HasStore | null = Game.getObjectById(targetId);
-    if (!target) creep.memory.targetId = undefined;
-    else if (
-      target instanceof ConstructionSite &&
-      creep.role() === RoleNames.BUILDER
-    )
-      return;
-    else if (
-      !(target instanceof Structure || target instanceof ConstructionSite)
-    )
-      creep.memory.targetId = undefined;
-    else if (
-      !target.store ||
-      target.store.getFreeCapacity(RESOURCE_ENERGY) === 0
-    )
-      creep.memory.targetId = undefined;
-  }
+  let targetId = creep.memory.targetId;
+  if (!targetId) return true;
+  let target: HasStore | null = Game.getObjectById(targetId);
+
+  if (!target) return false;
+
+  if (
+    target instanceof ConstructionSite &&
+    creep.memory.role === RoleNames.BUILDER
+  )
+    return true;
+
+  if (!(target instanceof Structure || target instanceof ConstructionSite))
+    return false;
+
+  if (!target.store || target.store.getFreeCapacity(RESOURCE_ENERGY) === 0)
+    return false;
+
+  return true;
 }

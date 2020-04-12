@@ -2,7 +2,7 @@
 
 // memory extension samples
 interface CreepMemory {
-  role: RoleNames;
+  role: string;
   room?: string;
   working: boolean;
   sourceId?: Id<EnergySource>;
@@ -11,16 +11,10 @@ interface CreepMemory {
 }
 
 interface SpawnMemory {
-  roles?: { [roleName in RoleNames]: number };
+  roles?: { [name: string]: number };
 }
 
 interface Creep {
-  // shortcuts for memory objects
-  working: () => boolean;
-  role: () => RoleNames;
-  targetId: () => string | void;
-  sourceId: () => string | void;
-
   // The generic run method that calls the appropriate role methods
   run: () => ScreepsReturnCode;
 
@@ -43,15 +37,6 @@ interface StructureSpawn {
 }
 
 // MINE
-declare enum RoleNames {
-  MINER = 'miner',
-  LORRY = 'lorry',
-  REPAIRER = 'repairer',
-  WALL_REPAIRER = 'wallRepairer',
-  BUILDER = 'builder',
-  UPGRADER = 'upgrader',
-  SPECIALIST = 'specialist',
-}
 
 type EnergySource = Source | Resource | Structure | Ruin | Tombstone;
 
@@ -64,7 +49,7 @@ interface Role {
 }
 
 type RoleList = {
-  [name in RoleNames]: Role;
+  [name: string]: Role;
 };
 
 interface HasStore {

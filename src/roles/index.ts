@@ -3,18 +3,17 @@ import Lorry from './lorry';
 import Miner from './miner';
 import Repairer from './repairer';
 import WallRepairer from './wallRepairer';
-import Specialist from './specialist';
 import Upgrader from './upgrader';
 import { RoleNames } from './roleNames';
 
-let roleList: RoleList = {
+let basicRoles: RoleList = {
   [RoleNames.MINER]: Miner,
   [RoleNames.LORRY]: Lorry,
   [RoleNames.REPAIRER]: Repairer,
   [RoleNames.UPGRADER]: Upgrader,
-  [RoleNames.WALL_REPAIRER]: WallRepairer,
   [RoleNames.BUILDER]: Builder,
-  [RoleNames.SPECIALIST]: Specialist,
+  [RoleNames.WALL_REPAIRER]: WallRepairer,
 };
 
-export default roleList;
+export * from './specialist';
+export default basicRoles;
