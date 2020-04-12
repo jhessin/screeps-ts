@@ -9,11 +9,16 @@ import { RoleNames } from './roleNames';
 let basicRoles: RoleList = {
   [RoleNames.MINER]: Miner,
   [RoleNames.LORRY]: Lorry,
-  [RoleNames.REPAIRER]: Repairer,
   [RoleNames.UPGRADER]: Upgrader,
+  [RoleNames.REPAIRER]: Repairer,
   [RoleNames.BUILDER]: Builder,
   [RoleNames.WALL_REPAIRER]: WallRepairer,
 };
 
-export * from './specialist';
-export default basicRoles;
+export const BasicRoles = basicRoles;
+
+import Specialist from './specialist';
+
+export const SpecialRoles: RoleList = {
+  [RoleNames.SPECIALIST]: Specialist,
+};

@@ -35,13 +35,17 @@ function mine(creep: Creep) {
   if (source) {
     creep.memory.sourceId = source.id;
     let id = creep.memory.targetId;
-    let target: Structure | undefined | null = id
+    let target: HasPos | null = id
       ? Game.getObjectById(id)
       : source.pos.findInRange(FIND_STRUCTURES, 1, {
           filter: s => s instanceof StructureContainer,
         })[0];
+    if (!target) {
+      target = source.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 1, {
+        filter: s => s.structureType === STRUCTURE_CONTAINER,
+      })[0];
+    }
     if (target) {
-      creep.memory.targetId = target.id;
       // travel to container
       if (creep.pos.isEqualTo(target.pos)) {
         return creep.harvest(source as Source);

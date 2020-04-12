@@ -8,7 +8,7 @@ let wallRepairer: Role = {
     working: true,
   },
   harvest: creep => creep.harvestEnergy(),
-  work: repairWalls,
+  work: buildWalls,
   creeps: function() {
     return CreepsWithRole(this);
   },
@@ -44,6 +44,23 @@ function repairWalls(creep: Creep): ScreepsReturnCode {
   }
 
   return creep.upgradeRoom();
+}
+
+function buildWalls(creep: Creep): ScreepsReturnCode {
+  let site = creep.pos.findClosestByPath(FIND_MY_CONSTRUCTION_SITES, {
+    filter: s => s.structureType === STRUCTURE_WALL,
+  });
+
+  if (!site) return repairWalls(creep);
+
+  let code = creep.build(site);
+  if (code === ERR_NOT_IN_RANGE) {
+    return creep.travelTo(site) as ScreepsReturnCode;
+  } else if (code !== OK) {
+    console.log(`Error buliding wall: ${code}`);
+    return code;
+  }
+  return code;
 }
 
 export default wallRepairer;

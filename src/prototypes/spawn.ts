@@ -1,6 +1,6 @@
 import { getRandomName } from 'names';
 import { RoleNames } from 'roles/roleNames';
-import basicRoles from 'roles';
+import { BasicRoles } from 'roles';
 
 StructureSpawn.prototype.spawnRole = function(
   role: Role,
@@ -51,7 +51,7 @@ StructureSpawn.prototype.spawnMiner = function(
   let energy = emergency
     ? this.room.energyAvailable
     : this.room.energyCapacityAvailable;
-  let role = basicRoles.miner;
+  let role = BasicRoles.miner;
   let cost = bodyCost(role.body);
   let numParts = Math.floor(energy / cost);
   let body: BodyPartConstant[] = [];

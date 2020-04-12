@@ -31,7 +31,22 @@ function repair(creep: Creep): ScreepsReturnCode {
     return code;
   }
 
-  return creep.upgradeRoom();
+  return buildRoads(creep);
 }
 
+function buildRoads(creep: Creep): ScreepsReturnCode {
+  let road = creep.pos.findClosestByPath(FIND_MY_CONSTRUCTION_SITES, {
+    filter: s => s.structureType === STRUCTURE_ROAD,
+  });
+
+  if (!road) return creep.upgradeRoom();
+
+  let code = creep.build(road);
+  if (code === ERR_NOT_IN_RANGE) {
+    return creep.travelTo(road) as ScreepsReturnCode;
+  } else if (code !== OK) {
+    console.log(`Error building road: ${code}`);
+  }
+  return code;
+}
 export default repairer;
