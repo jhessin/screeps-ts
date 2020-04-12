@@ -10,10 +10,10 @@ import { RoleNames } from './roleNames';
 let roleList: RoleList = {
   [RoleNames.MINER]: Miner,
   [RoleNames.LORRY]: Lorry,
-  [RoleNames.UPGRADER]: Upgrader,
-  [RoleNames.BUILDER]: Builder,
   [RoleNames.REPAIRER]: Repairer,
+  [RoleNames.UPGRADER]: Upgrader,
   [RoleNames.WALL_REPAIRER]: WallRepairer,
+  [RoleNames.BUILDER]: Builder,
   [RoleNames.SPECIALIST]: Specialist,
 };
 
