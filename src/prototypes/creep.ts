@@ -1,5 +1,6 @@
 import { Finder } from 'utils';
 import roleList from 'roles';
+import { RoleNames } from 'roles/roleNames';
 
 Creep.prototype.run = function() {
   validateTargets(this);
@@ -52,9 +53,7 @@ Creep.prototype.harvestFreeEnergy = function() {
   if (target) {
     this.memory.sourceId = target.id;
     let code =
-      target instanceof Source
-        ? this.harvest(target)
-        : target instanceof Resource
+      target instanceof Resource
         ? this.pickup(target)
         : this.withdraw(target as Structure, RESOURCE_ENERGY);
     if (code === ERR_NOT_IN_RANGE) {
@@ -98,10 +97,9 @@ Creep.prototype.harvestEnergy = function() {
 Creep.prototype.storeFreeEnergy = function() {
   let id = this.memory.targetId;
   let finder = new Finder(this);
-  let target: Structure | void | null =
-    id !== undefined
-      ? Game.getObjectById(id)
-      : finder.FindClosestStorageFacility();
+  let target: Structure | void | null = id
+    ? Game.getObjectById(id)
+    : finder.FindClosestStorageFacility();
   if (target) {
     this.memory.targetId = target.id;
     let code = this.transfer(target, RESOURCE_ENERGY);
@@ -162,7 +160,15 @@ function validateTargets(creep: Creep) {
   if (targetId) {
     let target: HasStore | null = Game.getObjectById(targetId);
     if (!target) creep.memory.targetId = undefined;
-    else if (!(target instanceof Structure)) creep.memory.targetId = undefined;
+    else if (
+      target instanceof ConstructionSite &&
+      creep.role() === RoleNames.BUILDER
+    )
+      return;
+    else if (
+      !(target instanceof Structure || target instanceof ConstructionSite)
+    )
+      creep.memory.targetId = undefined;
     else if (
       !target.store ||
       target.store.getFreeCapacity(RESOURCE_ENERGY) === 0

@@ -2,7 +2,7 @@ import { CreepsWithRole } from 'utils';
 import { RoleNames } from './roleNames';
 
 let miner: Role = {
-  body: [WORK, WORK, MOVE],
+  body: [WORK, WORK, MOVE, MOVE],
   memory: {
     role: RoleNames.MINER,
     working: true,
@@ -18,10 +18,34 @@ function mine(creep: Creep) {
   let id = creep.memory.sourceId;
   let source = id
     ? Game.getObjectById(id)
-    : creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+    : creep.pos.findClosestByPath(FIND_SOURCES, {
+        filter: s => {
+          for (let name in Game.creeps) {
+            let creep = Game.creeps[name];
+            if (creep.role() === RoleNames.MINER && creep.sourceId() === s.id)
+              return false;
+          }
+          return true;
+        },
+      });
 
   if (source) {
     creep.memory.sourceId = source.id;
+    let id = creep.targetId();
+    let target: Structure | undefined | null = id
+      ? Game.getObjectById(id)
+      : source.pos.findInRange(FIND_STRUCTURES, 1, {
+          filter: s => s instanceof StructureContainer,
+        })[0];
+    if (target) {
+      creep.memory.targetId = target.id;
+      // travel to container
+      if (creep.pos.isEqualTo(target.pos)) {
+        return creep.harvest(source as Source);
+      } else {
+        return creep.travelTo(target) as ScreepsReturnCode;
+      }
+    }
     let code: ScreepsReturnCode = creep.harvest(source as Source);
     if (code === ERR_NOT_IN_RANGE) {
       return creep.travelTo(source) as ScreepsReturnCode;

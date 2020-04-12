@@ -46,15 +46,11 @@ function cleanMemory() {
 
 function spawnAsNeeded(spawn: StructureSpawn) {
   // Emergency spawn
-  if (
-    roleList.harvester.creeps().length === 0 &&
-    roleList.lorry.creeps().length === 0
-  ) {
-    if (roleList.miner.creeps().length > 0) {
-      return spawn.spawnRole(roleList.lorry, true);
-    } else {
-      return spawn.spawnRole(roleList.harvester, true);
-    }
+  if (roleList.miner.creeps().length === 0) {
+    return spawn.spawnRole(roleList.miner, true);
+  }
+  if (roleList.lorry.creeps().length === 0) {
+    return spawn.spawnRole(roleList.lorry, true);
   }
 
   // Regular spawning

@@ -1,4 +1,3 @@
-import Harvester from './harvester';
 import Builder from './builder';
 import Lorry from './lorry';
 import Miner from './miner';
@@ -12,7 +11,6 @@ let roleList: RoleList = {
   [RoleNames.MINER]: Miner,
   [RoleNames.LORRY]: Lorry,
   [RoleNames.UPGRADER]: Upgrader,
-  [RoleNames.HARVESTER]: Harvester,
   [RoleNames.BUILDER]: Builder,
   [RoleNames.REPAIRER]: Repairer,
   [RoleNames.WALL_REPAIRER]: WallRepairer,

@@ -1,5 +1,6 @@
 import { getRandomName } from 'names';
 import { RoleNames } from 'roles/roleNames';
+import roleList from 'roles';
 
 StructureSpawn.prototype.spawnRole = function(
   role: Role,
@@ -39,7 +40,6 @@ StructureSpawn.prototype.roleDemand = function(role: Role): number {
   if (!this.memory.roles) {
     this.memory.roles = {
       [RoleNames.MINER]: 2,
-      [RoleNames.HARVESTER]: 2,
       [RoleNames.LORRY]: 2,
       [RoleNames.BUILDER]: 2,
       [RoleNames.UPGRADER]: 2,

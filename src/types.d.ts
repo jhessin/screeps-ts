@@ -43,7 +43,6 @@ interface StructureSpawn {
 
 // MINE
 declare enum RoleNames {
-  HARVESTER = 'harvester',
   MINER = 'miner',
   LORRY = 'lorry',
   REPAIRER = 'repairer',

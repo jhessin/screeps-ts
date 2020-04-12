@@ -7,37 +7,38 @@ export class Finder {
 
   public FindClosestFreeEnergy(): EnergySource | null {
     // First get the nearest dropped resources.
+    let sources: EnergySource[] = [];
     let energy: EnergySource | null = this.pos.findClosestByPath(
       FIND_DROPPED_RESOURCES,
     );
 
-    if (energy) return energy;
+    if (energy) sources.push(energy);
 
     // Next look for tombstones
     energy = this.pos.findClosestByPath(FIND_TOMBSTONES, {
       filter: t => t.store.energy > 0,
     });
 
-    if (energy) return energy;
+    if (energy) sources.push(energy);
 
     // Now for ruins
     energy = this.pos.findClosestByPath(FIND_RUINS, {
       filter: s => s.store.energy > 0,
     });
 
-    if (energy) return energy;
+    if (energy) sources.push(energy);
 
     // Next we go for containers
     energy = this.pos.findClosestByPath(FIND_STRUCTURES, {
       filter: s => s instanceof StructureContainer && s.store.energy > 0,
     });
 
-    if (energy) return energy;
+    if (energy) sources.push(energy);
 
     // Finally we go directly for the source.
-    energy = this.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+    // energy = this.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
 
-    return energy;
+    return this.pos.findClosestByPath(sources);
   }
 
   public FindClosestEnergy(): EnergySource | null {
@@ -52,7 +53,7 @@ export class Finder {
       filter: s => s instanceof StructureStorage && s.store.energy > 0,
     });
 
-    return storage || energy;
+    return storage;
   }
 
   public FindClosestStorageFacility(): Structure | void {
@@ -79,5 +80,14 @@ export class Finder {
 
     // let room = Game.rooms[this.pos.roomName];
     // return room.controller;
+  }
+
+  findSalvage(): Structure | void {
+    // Look for dismantle flags
+    let flag = Game.flags.dismantle;
+
+    if (flag) {
+      return flag.pos.findInRange(FIND_STRUCTURES, 0)[0];
+    }
   }
 }
