@@ -6,4 +6,6 @@ export enum RoleNames {
   BUILDER = 'builder',
   UPGRADER = 'upgrader',
   SPECIALIST = 'specialist',
+  SALVAGER = 'salvager',
+  DEFENDER = 'defender',
 }

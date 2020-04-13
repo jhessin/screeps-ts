@@ -15,6 +15,7 @@ let miner: Role = {
 };
 
 function mine(creep: Creep) {
+  // Find an appropriate source
   let id = creep.memory.sourceId;
   let source = id
     ? Game.getObjectById(id)
@@ -35,10 +36,13 @@ function mine(creep: Creep) {
   if (source) {
     creep.memory.sourceId = source.id;
     let id = creep.memory.targetId;
+    // Find an appropriate target
     let target: HasPos | null = id
       ? Game.getObjectById(id)
       : source.pos.findInRange(FIND_STRUCTURES, 1, {
-          filter: s => s instanceof StructureContainer,
+          filter: s =>
+            s instanceof StructureContainer &&
+            s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
         })[0];
     if (!target) {
       target = source.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 1, {

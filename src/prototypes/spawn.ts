@@ -19,6 +19,14 @@ StructureSpawn.prototype.spawnRole = function(
     }
   });
 
+  console.log(
+    `Spawning ${role.memory.role} creep.\n`,
+    `Base body: ${role.body}\n`,
+    `Base body cost ${bodyCost(role.body)}\n`,
+    `Expanded body: ${body}\n`,
+    `Expanded body cost: ${bodyCost(body)}\n`,
+  );
+
   return this.spawnCreep(body, getRandomName(), {
     memory: role.memory,
   });
@@ -32,19 +40,32 @@ StructureSpawn.prototype.roleDemand = function(role: Role): number {
   // initialize if necessary
   if (!this.memory.roles) {
     this.memory.roles = {
-      [RoleNames.MINER]: 2,
-      [RoleNames.LORRY]: 2,
-      [RoleNames.BUILDER]: 2,
-      [RoleNames.UPGRADER]: 2,
-      [RoleNames.REPAIRER]: 2,
-      [RoleNames.WALL_REPAIRER]: 2,
-      [RoleNames.SPECIALIST]: 0,
+      [RoleNames.MINER]: calculateMiners(this.room),
+      [RoleNames.LORRY]: 1,
+      [RoleNames.REPAIRER]: 1,
+      [RoleNames.UPGRADER]: 1,
+      [RoleNames.BUILDER]: 1,
+      [RoleNames.WALL_REPAIRER]: 1,
+      [RoleNames.DEFENDER]: calculateDefenders(this.room),
+      [RoleNames.SPECIALIST]: calculateSpecialist(this.room),
+      [RoleNames.SALVAGER]: calculateSalvager(this.room),
     };
   }
 
-  return this.memory.roles[role.memory.role];
+  return this.memory.roles[role.memory.role] || 1;
 };
+function calculateSpecialist(room: Room): number {
+  return 0;
+}
 
+function calculateSalvager(room: Room): number {
+  return 0;
+}
+
+// calculates how man miners we should need for a particular room.
+function calculateMiners(room: Room): number {
+  return room.find(FIND_SOURCES).length;
+}
 StructureSpawn.prototype.spawnMiner = function(
   emergency: boolean = false,
 ): ScreepsReturnCode {
@@ -65,3 +86,9 @@ StructureSpawn.prototype.spawnMiner = function(
     memory: role.memory,
   });
 };
+
+function calculateDefenders(room: Room): number {
+  return room.find(FIND_MY_STRUCTURES, {
+    filter: s => s instanceof StructureRampart,
+  }).length;
+}

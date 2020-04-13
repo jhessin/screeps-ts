@@ -2,7 +2,7 @@ import { CreepsWithRole } from 'utils';
 import { RoleNames } from './RoleNames';
 
 let specialist: Role = {
-  body: [WORK, CARRY, MOVE],
+  body: [WORK, CARRY, MOVE, MOVE],
   memory: {
     role: RoleNames.SPECIALIST,
     working: true,

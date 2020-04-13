@@ -1,3 +1,6 @@
+import { RoleNames } from 'roles/RoleNames';
+import { CreepsWithRoleName } from './functions';
+
 export class Finder {
   pos: RoomPosition;
 
@@ -5,32 +8,35 @@ export class Finder {
     this.pos = pos.pos;
   }
 
-  public FindClosestFreeEnergy(): EnergySource | null {
+  public FindClosestFreeEnergy(min: number = 50): EnergySource | null {
     // First get the nearest dropped resources.
     let sources: EnergySource[] = [];
     let energy: EnergySource | null = this.pos.findClosestByPath(
       FIND_DROPPED_RESOURCES,
+      {
+        filter: r => r.amount > min,
+      },
     );
 
     if (energy) sources.push(energy);
 
     // Next look for tombstones
     energy = this.pos.findClosestByPath(FIND_TOMBSTONES, {
-      filter: t => t.store.energy > 0,
+      filter: t => t.store.energy > min,
     });
 
     if (energy) sources.push(energy);
 
     // Now for ruins
     energy = this.pos.findClosestByPath(FIND_RUINS, {
-      filter: s => s.store.energy > 0,
+      filter: s => s.store.energy > min,
     });
 
     if (energy) sources.push(energy);
 
     // Next we go for containers
     energy = this.pos.findClosestByPath(FIND_STRUCTURES, {
-      filter: s => s instanceof StructureContainer && s.store.energy > 0,
+      filter: s => s instanceof StructureContainer && s.store.energy > min,
     });
 
     if (energy) sources.push(energy);
@@ -41,16 +47,18 @@ export class Finder {
     return this.pos.findClosestByPath(sources);
   }
 
-  public FindClosestEnergy(): EnergySource | null {
+  public FindClosestEnergy(min: number = 50): EnergySource | null {
     // First get closest free energy if we can
     let energy = this.FindClosestFreeEnergy();
 
     // Return it if it isn't a source
-    if (energy && !(energy instanceof Source)) return energy;
+    if (energy) return energy;
 
     // Now check for Storege structures
     let storage = this.pos.findClosestByPath(FIND_STRUCTURES, {
-      filter: s => s instanceof StructureStorage && s.store.energy > 0,
+      filter: s =>
+        (s instanceof StructureStorage || s instanceof StructureLink) &&
+        s.store.energy > min,
     });
 
     return storage;
@@ -60,11 +68,23 @@ export class Finder {
     let structure: Structure | null = this.pos.findClosestByPath(
       FIND_MY_STRUCTURES,
       {
-        filter: s =>
-          (s instanceof StructureSpawn ||
-            s instanceof StructureExtension ||
-            s instanceof StructureTower) &&
-          s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+        filter: s => {
+          if (
+            !(
+              (s instanceof StructureSpawn ||
+                s instanceof StructureExtension ||
+                s instanceof StructureTower ||
+                s instanceof StructureLink) &&
+              s.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+            )
+          )
+            return false;
+
+          for (let creep of CreepsWithRoleName(RoleNames.MINER)) {
+            if (creep.memory.targetId === s.id) return false;
+          }
+          return true;
+        },
       },
     );
 

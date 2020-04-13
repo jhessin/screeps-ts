@@ -2,7 +2,7 @@ import { CreepsWithRole } from 'utils';
 import { RoleNames } from './RoleNames';
 
 let wallRepairer: Role = {
-  body: [WORK, CARRY, MOVE],
+  body: [WORK, CARRY, MOVE, MOVE],
   memory: {
     role: RoleNames.WALL_REPAIRER,
     working: true,
@@ -19,7 +19,8 @@ function repairWalls(creep: Creep): ScreepsReturnCode {
     .find(FIND_STRUCTURES, {
       filter: s =>
         (s instanceof StructureWall || s instanceof StructureRampart) &&
-        s.hits < s.hitsMax,
+        s.hits < s.hitsMax &&
+        s.pos.findInRange(FIND_FLAGS, 0).length === 0,
     })
     .map(s => s as StructureWall);
 
@@ -48,7 +49,9 @@ function repairWalls(creep: Creep): ScreepsReturnCode {
 
 function buildWalls(creep: Creep): ScreepsReturnCode {
   let site = creep.pos.findClosestByPath(FIND_MY_CONSTRUCTION_SITES, {
-    filter: s => s.structureType === STRUCTURE_WALL,
+    filter: s =>
+      s.structureType === STRUCTURE_WALL ||
+      s.structureType === STRUCTURE_RAMPART,
   });
 
   if (!site) return repairWalls(creep);

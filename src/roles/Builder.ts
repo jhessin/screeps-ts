@@ -2,7 +2,7 @@ import { CreepsWithRole } from 'utils';
 import { RoleNames } from './RoleNames';
 
 let builder: Role = {
-  body: [WORK, CARRY, MOVE],
+  body: [WORK, CARRY, MOVE, MOVE],
   memory: {
     role: RoleNames.BUILDER,
     working: true,
@@ -34,6 +34,9 @@ function buildSite(creep: Creep): ScreepsReturnCode {
   if (site) return build(creep, site);
 
   site = quickSites(creep);
+  if (site) return build(creep, site);
+
+  site = allSites(creep);
   if (site) return build(creep, site);
 
   return creep.upgradeRoom();

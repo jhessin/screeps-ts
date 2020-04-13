@@ -46,7 +46,9 @@ Creep.prototype.harvestFreeEnergy = function() {
   let finder = new Finder(this);
   let target: EnergySource | null = id
     ? Game.getObjectById(id)
-    : finder.FindClosestFreeEnergy();
+    : finder.FindClosestFreeEnergy(
+        this.store.getFreeCapacity(RESOURCE_ENERGY),
+      ) || finder.FindClosestFreeEnergy();
   if (target) {
     this.memory.sourceId = target.id;
     let code =
@@ -70,7 +72,8 @@ Creep.prototype.harvestEnergy = function() {
   let finder = new Finder(this);
   let target: EnergySource | null = id
     ? Game.getObjectById(id)
-    : finder.FindClosestEnergy();
+    : finder.FindClosestEnergy(this.store.getFreeCapacity(RESOURCE_ENERGY)) ||
+      finder.FindClosestEnergy();
   if (target) {
     this.memory.sourceId = target.id;
     let code =

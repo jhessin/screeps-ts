@@ -3,11 +3,12 @@ import 'prototypes';
 import './Traveler/Traveler';
 import { BasicRoles, SpecialRoles } from 'roles';
 import { RoleNames } from 'roles/RoleNames';
+import { salvagersNeeded } from 'roles/Salvager';
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
-  console.log(`Current game tick is ${Game.time}`);
+  console.log(`=========================NEW LOOP=========================`);
 
   // Run the towers
   let towers = _.filter(Game.structures, s => s instanceof StructureTower);
@@ -45,7 +46,9 @@ export const loop = ErrorMapper.wrapLoop(() => {
     cleanMemory();
   }
 
-  console.log(`Done: CPU LOAD: ${Game.cpu.getUsed()}`);
+  console.log(
+    `===================Done: CPU LOAD: ${Game.cpu.getUsed()}=======`,
+  );
 });
 
 function cleanMemory() {
@@ -60,6 +63,8 @@ function cleanMemory() {
 }
 
 function spawnAsNeeded(spawn: StructureSpawn) {
+  logCreeps(spawn);
+
   // Emergency spawn
   if (BasicRoles.miner.creeps().length === 0) {
     return spawn.spawnMiner(true);
@@ -67,19 +72,38 @@ function spawnAsNeeded(spawn: StructureSpawn) {
   if (BasicRoles.lorry.creeps().length === 0) {
     return spawn.spawnRole(BasicRoles.lorry, true);
   }
+  // Spawn defenders if needed
+  let defenderRole = SpecialRoles[RoleNames.DEFENDER];
+  let defenders = defenderRole.creeps();
+  if (defenders.length < spawn.room.find(FIND_HOSTILE_CREEPS).length) {
+    return spawn.spawnRole(defenderRole, true);
+  }
 
-  // Regular spawning
+  // Special Spawning
+  if (
+    SpecialRoles[RoleNames.SALVAGER].creeps().length <
+    salvagersNeeded(spawn.room)
+  ) {
+    return spawn.spawnRole(SpecialRoles[RoleNames.SALVAGER], true);
+  }
+
+  // Basic Spawning
   for (let name in BasicRoles) {
-    let role = BasicRoles[name as RoleNames];
+    let role = BasicRoles[name];
 
     let creeps = role.creeps();
     let demand = spawn.roleDemand(role);
-    console.log(`${creeps.length} of ${demand} ${name}: ${creeps}`);
-
     if (creeps.length < demand) {
       if (name === RoleNames.MINER) return spawn.spawnMiner();
       return spawn.spawnRole(role);
     }
+  }
+
+  // Spawn defenders if needed
+  if (defenders.length < spawn.room.find(FIND_HOSTILE_CREEPS).length) {
+    return spawn.spawnRole(defenderRole, true);
+  } else if (defenders.length < spawn.roleDemand(defenderRole)) {
+    return spawn.spawnRole(defenderRole);
   }
 
   return OK;
@@ -92,17 +116,40 @@ function runTower(tower: StructureTower) {
 }
 
 function runLink(link: StructureLink) {
-  let targetFlag = Game.flags.linkTo;
+  let target: StructureLink;
 
-  if (!targetFlag) return;
+  target = link.room.find(FIND_MY_STRUCTURES, {
+    filter: s =>
+      s instanceof StructureLink &&
+      s.store.getUsedCapacity(RESOURCE_ENERGY) <
+        link.store.getUsedCapacity('energy') &&
+      s.id !== link.id,
+  })[0] as StructureLink;
 
-  let targetLink = targetFlag.pos.findInRange(FIND_MY_STRUCTURES, 0, {
-    filter: s => s instanceof StructureLink,
-  })[0];
+  if (!target) return;
 
-  if (!targetLink) return;
+  let amount =
+    link.store.getUsedCapacity(RESOURCE_ENERGY) -
+    target.store.getUsedCapacity('energy') / 2;
+  link.transferEnergy(target, amount);
+}
 
-  if (targetLink.id === link.id) return;
+function logCreeps(spawn: StructureSpawn) {
+  console.log('---Special Roles---');
+  for (let name in SpecialRoles) {
+    let role = SpecialRoles[name];
+    let creeps = role.creeps();
+    let demand = spawn.roleDemand(role);
+    console.log(`${creeps.length} of ${demand} ${name}: ${creeps}`);
+  }
 
-  link.transferEnergy(targetLink as StructureLink);
+  // Regular spawning
+  console.log('---Standard Roles---');
+  for (let name in BasicRoles) {
+    let role = BasicRoles[name];
+
+    let creeps = role.creeps();
+    let demand = spawn.roleDemand(role);
+    console.log(`${creeps.length} of ${demand} ${name}: ${creeps}`);
+  }
 }
