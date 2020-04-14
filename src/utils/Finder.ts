@@ -1,6 +1,8 @@
 import { RoleNames } from 'roles/RoleNames';
 import { CreepsWithRoleName } from './functions';
 
+// TODO Full refactor with smaller units.
+
 export class Finder {
   pos: RoomPosition;
 
