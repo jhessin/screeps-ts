@@ -66,12 +66,13 @@ function spawnAsNeeded(spawn: StructureSpawn) {
   logCreeps(spawn);
 
   // Emergency spawn
-  if (BasicRoles.miner.creeps().length === 0) {
-    return spawn.spawnMiner(true);
+  for (let role of Object.values(BasicRoles)) {
+    if (role.creeps().length === 0) {
+      if (role.memory.role === RoleNames.MINER) return spawn.spawnMiner(true);
+      return spawn.spawnRole(role, true);
+    }
   }
-  if (BasicRoles.lorry.creeps().length === 0) {
-    return spawn.spawnRole(BasicRoles.lorry, true);
-  }
+
   // Spawn defenders if needed
   let defenderRole = SpecialRoles[RoleNames.DEFENDER];
   let defenders = defenderRole.creeps();
@@ -84,7 +85,7 @@ function spawnAsNeeded(spawn: StructureSpawn) {
     SpecialRoles[RoleNames.SALVAGER].creeps().length <
     salvagersNeeded(spawn.room)
   ) {
-    return spawn.spawnRole(SpecialRoles[RoleNames.SALVAGER], true);
+    return spawn.spawnRole(SpecialRoles[RoleNames.SALVAGER]);
   }
 
   // Basic Spawning
@@ -122,15 +123,16 @@ function runLink(link: StructureLink) {
     filter: s =>
       s instanceof StructureLink &&
       s.store.getUsedCapacity(RESOURCE_ENERGY) <
-        link.store.getUsedCapacity('energy') &&
+        link.store.getUsedCapacity('energy') / 2 &&
       s.id !== link.id,
   })[0] as StructureLink;
 
   if (!target) return;
 
   let amount =
-    link.store.getUsedCapacity(RESOURCE_ENERGY) -
-    target.store.getUsedCapacity('energy') / 2;
+    (link.store.getUsedCapacity(RESOURCE_ENERGY) -
+      target.store.getUsedCapacity('energy')) /
+    2;
   link.transferEnergy(target, amount);
 }
 

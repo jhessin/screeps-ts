@@ -82,12 +82,19 @@ StructureSpawn.prototype.spawnMiner = function(
   let role = BasicRoles.miner;
   let cost = bodyCost(role.body);
   let numParts = Math.floor(energy / cost);
-  let body: BodyPartConstant[] = [];
+  let body: BodyPartConstant[] = role.body;
 
-  while (bodyCost(role.body) > energy && body.length > 2) {
-    role.body.pop();
+  while (bodyCost(body) > energy && body.length > 2) {
+    body.pop();
   }
 
+  console.log(
+    `Spawning ${role.memory.role} creep.\n`,
+    `Base body: ${role.body}\n`,
+    `Base body cost ${bodyCost(role.body)}\n`,
+    `Resized body: ${body}\n`,
+    `Resized body cost: ${bodyCost(body)}\n`,
+  );
   // Special case for miners
   return this.spawnCreep(role.body, getRandomName(), {
     memory: role.memory,

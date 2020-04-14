@@ -47,8 +47,10 @@ function mine(creep: Creep): ScreepsReturnCode {
 }
 
 export function salvagersNeeded(room: Room): number {
-  return room.find(FIND_FLAGS, {
-    filter: f => f.name.startsWith('salvage'),
-  }).length;
+  return (
+    room.find(FIND_FLAGS, {
+      filter: f => f.name.startsWith('salvage'),
+    }).length && 1
+  );
 }
 export default Salvager;

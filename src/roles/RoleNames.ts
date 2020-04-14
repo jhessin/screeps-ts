@@ -8,4 +8,5 @@ export enum RoleNames {
   SPECIALIST = 'specialist',
   SALVAGER = 'salvager',
   DEFENDER = 'defender',
+  LINK_LOADER = 'linkLoader',
 }
