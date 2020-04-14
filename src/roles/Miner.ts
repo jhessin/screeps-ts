@@ -2,7 +2,7 @@ import { CreepsWithRole } from 'utils';
 import { RoleNames } from './RoleNames';
 
 let miner: Role = {
-  body: [WORK, WORK, WORK, WORK, WORK, MOVE],
+  body: [MOVE, WORK, WORK, WORK, WORK, WORK],
   memory: {
     role: RoleNames.MINER,
     working: true,
@@ -32,6 +32,23 @@ function mine(creep: Creep) {
           return true;
         },
       });
+
+  if (!source)
+    source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+      filter: s => {
+        if (!(s instanceof StructureExtractor)) return false;
+
+        for (let name in Game.creeps) {
+          let creep = Game.creeps[name];
+          if (
+            creep.memory.role === RoleNames.MINER &&
+            creep.memory.sourceId === s.id
+          )
+            return false;
+        }
+        return true;
+      },
+    });
 
   if (source) {
     creep.memory.sourceId = source.id;

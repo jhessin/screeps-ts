@@ -54,6 +54,7 @@ StructureSpawn.prototype.roleDemand = function(role: Role): number {
 
   return this.memory.roles[role.memory.role] || 1;
 };
+
 function calculateSpecialist(room: Room): number {
   return 0;
 }
@@ -64,8 +65,14 @@ function calculateSalvager(room: Room): number {
 
 // calculates how man miners we should need for a particular room.
 function calculateMiners(room: Room): number {
-  return room.find(FIND_SOURCES).length;
+  return (
+    room.find(FIND_SOURCES).length +
+    room.find(FIND_STRUCTURES, {
+      filter: s => s instanceof StructureExtractor,
+    }).length
+  );
 }
+
 StructureSpawn.prototype.spawnMiner = function(
   emergency: boolean = false,
 ): ScreepsReturnCode {
@@ -77,8 +84,8 @@ StructureSpawn.prototype.spawnMiner = function(
   let numParts = Math.floor(energy / cost);
   let body: BodyPartConstant[] = [];
 
-  while (bodyCost(role.body) > energy) {
-    role.body.shift();
+  while (bodyCost(role.body) > energy && body.length > 2) {
+    role.body.pop();
   }
 
   // Special case for miners
