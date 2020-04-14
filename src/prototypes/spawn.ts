@@ -1,5 +1,5 @@
 import { getRandomName } from 'names';
-import { RoleNames } from 'roles/RoleNames';
+import { RoleName } from 'roles/RoleNames';
 import { BasicRoles } from 'roles';
 
 StructureSpawn.prototype.spawnRole = function(
@@ -40,15 +40,15 @@ StructureSpawn.prototype.roleDemand = function(role: Role): number {
   // initialize if necessary
   if (!this.memory.roles) {
     this.memory.roles = {
-      [RoleNames.MINER]: calculateMiners(this.room),
-      [RoleNames.LORRY]: 1,
-      [RoleNames.REPAIRER]: 1,
-      [RoleNames.UPGRADER]: 1,
-      [RoleNames.BUILDER]: 1,
-      [RoleNames.WALL_REPAIRER]: 1,
-      [RoleNames.DEFENDER]: calculateDefenders(this.room),
-      [RoleNames.SPECIALIST]: calculateSpecialist(this.room),
-      [RoleNames.SALVAGER]: calculateSalvager(this.room),
+      [RoleName.MINER]: calculateMiners(this.room),
+      [RoleName.LORRY]: 1,
+      [RoleName.REPAIRER]: 1,
+      [RoleName.UPGRADER]: 1,
+      [RoleName.BUILDER]: 1,
+      [RoleName.WALL_REPAIRER]: 1,
+      [RoleName.DEFENDER]: calculateDefenders(this.room),
+      [RoleName.SPECIALIST]: calculateSpecialist(this.room),
+      [RoleName.SALVAGER]: calculateSalvager(this.room),
     };
   }
 

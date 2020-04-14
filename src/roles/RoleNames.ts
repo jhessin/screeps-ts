@@ -1,4 +1,4 @@
-export enum RoleNames {
+export enum RoleName {
   MINER = 'miner',
   LORRY = 'lorry',
   REPAIRER = 'repairer',

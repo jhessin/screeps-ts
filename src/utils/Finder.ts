@@ -1,7 +1,9 @@
-import { RoleNames } from 'roles/RoleNames';
+import { RoleName } from 'roles/RoleNames';
 import { CreepsWithRoleName } from './functions';
 
 // TODO Full refactor with smaller units.
+
+const ROOMSIZE = 49;
 
 export class Finder {
   pos: RoomPosition;
@@ -10,6 +12,78 @@ export class Finder {
     this.pos = pos.pos;
   }
 
+  // Return all resources of a giver type (default ENERGY)
+  // within a range (default entire room)
+  public resources(
+    type: ResourceConstant = RESOURCE_ENERGY,
+    range: number = ROOMSIZE,
+  ): Resource[] | null {
+    return this.pos.findInRange(FIND_DROPPED_RESOURCES, range, {
+      filter: s => s.resourceType === type,
+    });
+  }
+
+  // Return all resources other than a given type (default ENERGY)
+  // within a range (default entire room)
+  public otherResources(
+    type: ResourceConstant = RESOURCE_ENERGY,
+    range: number = ROOMSIZE,
+  ): Resource[] | null {
+    return this.pos.findInRange(FIND_DROPPED_RESOURCES, range, {
+      filter: s => s.resourceType !== type,
+    });
+  }
+
+  public creepsWithRole(
+    role: RoleName,
+    target: Id<any> | null,
+    range: number = ROOMSIZE,
+  ): Creep[] {
+    return this.pos.findInRange(FIND_MY_CREEPS, range, {
+      filter: s => {
+        if (!target) return s.memory.role === role;
+        return s.memory.role === role && s.memory.targetId === target;
+      },
+    });
+  }
+
+  // find all enemies in the room or in range
+  public enemies(range = ROOMSIZE): AnyCreep[] {
+    // first add the power creeps
+    let enemies: AnyCreep[] = this.pos.findInRange(
+      FIND_HOSTILE_POWER_CREEPS,
+      range,
+    );
+
+    // then the regular creeps
+    enemies.push.apply(this.pos.findInRange(FIND_HOSTILE_CREEPS, range));
+
+    return enemies;
+  }
+
+  public sources(active: boolean = false, range = ROOMSIZE): Source[] | null {
+    return this.pos.findInRange(
+      active ? FIND_SOURCES_ACTIVE : FIND_SOURCES,
+      range,
+    );
+  }
+
+  public closestByPath(...objects: RoomObject[]): RoomObject | null {
+    return this.pos.findClosestByPath(objects);
+  }
+
+  public structures(
+    type: StructureConstant | null = null,
+    range = ROOMSIZE,
+  ): Structure[] {
+    let filter = type ? (s: Structure) => s.structureType === type : {};
+    return this.pos.findInRange(FIND_STRUCTURES, range, {
+      filter,
+    });
+  }
+
+  // ----- OLD METHODS ----
+  // DEPRECATED
   public FindClosestFreeEnergy(min: number = 50): EnergySource | null {
     // First get the nearest dropped resources.
     let sources: EnergySource[] = [];
@@ -121,7 +195,7 @@ export class Finder {
           )
             return false;
 
-          for (let creep of CreepsWithRoleName(RoleNames.MINER)) {
+          for (let creep of CreepsWithRoleName(RoleName.MINER)) {
             if (creep.memory.targetId === s.id) return false;
           }
           return true;

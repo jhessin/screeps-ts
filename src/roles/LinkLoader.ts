@@ -1,10 +1,10 @@
 import { CreepsWithRole, Finder } from 'utils';
-import { RoleNames } from './RoleNames';
+import { RoleName } from './RoleNames';
 
 let linkLoader: Role = {
   body: [CARRY, MOVE],
   memory: {
-    role: RoleNames.LINK_LOADER,
+    role: RoleName.LINK_LOADER,
     working: true,
   },
   work: loadLink,

@@ -1,10 +1,10 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './RoleNames';
+import { RoleName } from './RoleNames';
 
 const Salvager: Role = {
   body: [WORK, MOVE],
   memory: {
-    role: RoleNames.SALVAGER,
+    role: RoleName.SALVAGER,
     working: true,
   },
   work: salvage,
@@ -42,7 +42,7 @@ function salvage(creep: Creep): ScreepsReturnCode {
 }
 
 function mine(creep: Creep): ScreepsReturnCode {
-  creep.memory.role = RoleNames.MINER;
+  creep.memory.role = RoleName.MINER;
   return ERR_NO_BODYPART;
 }
 

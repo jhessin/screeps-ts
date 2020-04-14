@@ -1,10 +1,10 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './RoleNames';
+import { RoleName } from './RoleNames';
 
 let builder: Role = {
   body: [WORK, CARRY, MOVE, MOVE],
   memory: {
-    role: RoleNames.BUILDER,
+    role: RoleName.BUILDER,
     working: true,
   },
   work: buildSite,

@@ -2,7 +2,7 @@ import { ErrorMapper } from 'utils';
 import 'prototypes';
 import './Traveler/Traveler';
 import { BasicRoles, SpecialRoles } from 'roles';
-import { RoleNames } from 'roles/RoleNames';
+import { RoleName } from 'roles/RoleNames';
 import { salvagersNeeded } from 'roles/Salvager';
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
@@ -68,13 +68,13 @@ function spawnAsNeeded(spawn: StructureSpawn) {
   // Emergency spawn
   for (let role of Object.values(BasicRoles)) {
     if (role.creeps().length === 0) {
-      if (role.memory.role === RoleNames.MINER) return spawn.spawnMiner(true);
+      if (role.memory.role === RoleName.MINER) return spawn.spawnMiner(true);
       return spawn.spawnRole(role, true);
     }
   }
 
   // Spawn defenders if needed
-  let defenderRole = SpecialRoles[RoleNames.DEFENDER];
+  let defenderRole = SpecialRoles[RoleName.DEFENDER];
   let defenders = defenderRole.creeps();
   if (defenders.length < spawn.room.find(FIND_HOSTILE_CREEPS).length) {
     return spawn.spawnRole(defenderRole, true);
@@ -82,10 +82,10 @@ function spawnAsNeeded(spawn: StructureSpawn) {
 
   // Special Spawning
   if (
-    SpecialRoles[RoleNames.SALVAGER].creeps().length <
+    SpecialRoles[RoleName.SALVAGER].creeps().length <
     salvagersNeeded(spawn.room)
   ) {
-    return spawn.spawnRole(SpecialRoles[RoleNames.SALVAGER]);
+    return spawn.spawnRole(SpecialRoles[RoleName.SALVAGER]);
   }
 
   // Basic Spawning
@@ -95,7 +95,7 @@ function spawnAsNeeded(spawn: StructureSpawn) {
     let creeps = role.creeps();
     let demand = spawn.roleDemand(role);
     if (creeps.length < demand) {
-      if (name === RoleNames.MINER) return spawn.spawnMiner();
+      if (name === RoleName.MINER) return spawn.spawnMiner();
       return spawn.spawnRole(role);
     }
   }
