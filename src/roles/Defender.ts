@@ -43,6 +43,7 @@ function defend(creep: Creep): ScreepsReturnCode {
   if (code === ERR_NOT_IN_RANGE) {
     // Then a ranged attack
     code = creep.rangedAttack(enemy);
+    if (code === ERR_NOT_IN_RANGE) return moveToRallyNearEnemy(creep, enemy);
   }
   if (code !== OK) {
     console.log(`Couldn't attack hostile creep: ${code}`);
@@ -76,4 +77,32 @@ function moveToRally(creep: Creep): ScreepsReturnCode {
   return creep.travelTo(rally) as ScreepsReturnCode;
 }
 
+function moveToRallyNearEnemy(
+  creep: Creep,
+  enemy: Creep | PowerCreep,
+): ScreepsReturnCode {
+  let target: Structure | null = creep.memory.targetId
+    ? Game.getObjectById(creep.memory.targetId)
+    : enemy.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+        filter: s => {
+          if (!(s instanceof StructureRampart)) return false;
+
+          for (let creep of defender.creeps()) {
+            if (creep.memory.targetId === s.id) return false;
+          }
+          return true;
+        },
+      });
+
+  if (target) {
+    creep.memory.targetId = target.id;
+    return creep.travelTo(target) as ScreepsReturnCode;
+  }
+
+  let rally = Game.flags.rally;
+
+  if (!rally) return ERR_NOT_FOUND;
+
+  return creep.travelTo(rally) as ScreepsReturnCode;
+}
 export default defender;

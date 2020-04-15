@@ -66,10 +66,19 @@ function spawnAsNeeded(spawn: StructureSpawn) {
   logCreeps(spawn);
 
   // Emergency spawn
+  // MINERS ARE PRIMARY
+  let role = BasicRoles[RoleNames.MINER];
+  if (role.creeps().length < spawn.roleDemand(role)) {
+    let code = spawn.spawnMiner();
+    if (role.creeps().length === 0 && code === ERR_NOT_ENOUGH_ENERGY)
+      return spawn.spawnMiner(true);
+    return code;
+  }
   for (let role of Object.values(BasicRoles)) {
     if (role.creeps().length === 0) {
-      if (role.memory.role === RoleNames.MINER) return spawn.spawnMiner(true);
-      return spawn.spawnRole(role, true);
+      if (role.memory.role === RoleNames.LORRY)
+        return spawn.spawnRole(role, true);
+      return spawn.spawnRole(role);
     }
   }
 

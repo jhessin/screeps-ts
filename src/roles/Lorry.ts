@@ -6,6 +6,7 @@ let lorry: Role = {
   memory: {
     role: RoleNames.LORRY,
     working: true,
+    resourceType: RESOURCE_ENERGY,
   },
   work: creep => creep.storeFreeEnergy(),
   harvest: creep => creep.harvestFreeEnergy(),

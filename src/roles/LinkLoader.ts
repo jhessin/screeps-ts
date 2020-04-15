@@ -15,14 +15,11 @@ let linkLoader: Role = {
 };
 
 function loadLink(creep: Creep): ScreepsReturnCode {
-  let link: StructureLink | null = creep.pos.findClosestByPath(
-    FIND_STRUCTURES,
-    {
-      filter: s =>
-        s instanceof StructureLink &&
-        s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-    },
-  ) as StructureLink;
+  let link: StructureLink | null = creep.pos.findInRange(FIND_STRUCTURES, 10, {
+    filter: s =>
+      s instanceof StructureLink &&
+      s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+  })[0] as StructureLink;
 
   if (!link) return creep.storeFreeEnergy();
 
