@@ -1,6 +1,6 @@
 import { Finder } from 'utils';
 import { BasicRoles, SpecialRoles } from 'roles';
-import { RoleNames } from 'roles/RoleNames';
+import { RoleName } from 'roles/RoleName';
 
 Creep.prototype.run = function() {
   if (!validateSource(this)) delete this.memory.sourceId;
@@ -30,8 +30,8 @@ Creep.prototype.run = function() {
   // Finally assign a default if none of those are valid
   if (!role) {
     console.log('INVALID ROLE DETECTED CREATING UPGRADER');
-    this.memory.role = RoleNames.UPGRADER;
-    role = BasicRoles[RoleNames.UPGRADER];
+    this.memory.role = RoleName.UPGRADER;
+    role = BasicRoles[RoleName.UPGRADER];
   }
 
   if (this.memory.working) {
@@ -188,7 +188,7 @@ function validateTarget(creep: Creep): boolean {
 
   if (
     target instanceof ConstructionSite &&
-    creep.memory.role === RoleNames.BUILDER
+    creep.memory.role === RoleName.BUILDER
   )
     return true;
 

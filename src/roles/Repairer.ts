@@ -1,10 +1,10 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './RoleNames';
+import { RoleName } from './RoleName';
 
 let repairer: Role = {
   body: [WORK, CARRY, MOVE, MOVE],
   memory: {
-    role: RoleNames.REPAIRER,
+    role: RoleName.REPAIRER,
     working: true,
   },
   harvest: creep => creep.harvestEnergy(),

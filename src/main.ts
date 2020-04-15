@@ -2,7 +2,7 @@ import { ErrorMapper } from 'utils';
 import 'prototypes';
 import './Traveler/Traveler';
 import { BasicRoles, SpecialRoles } from 'roles';
-import { RoleName } from 'roles/RoleNames';
+import { RoleName } from 'roles/RoleName';
 import { salvagersNeeded } from 'roles/Salvager';
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change

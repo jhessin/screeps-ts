@@ -1,4 +1,4 @@
-import { RoleNames } from 'roles/RoleNames';
+import { RoleName } from 'roles/RoleName';
 import { CreepsWithRoleName } from './functions';
 
 function getClaimedSources(): EnergySource[] {
@@ -139,7 +139,7 @@ export class Finder {
               )
                 return false;
 
-              for (let creep of CreepsWithRoleName(RoleNames.MINER)) {
+              for (let creep of CreepsWithRoleName(RoleName.MINER)) {
                 if (creep.memory.targetId === s.id) return false;
               }
               return true;
