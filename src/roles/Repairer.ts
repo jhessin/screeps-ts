@@ -16,11 +16,14 @@ let repairer: Role = {
 
 function repair(creep: Creep): ScreepsReturnCode {
   let id = creep.memory.targetId;
+  let targets: Structure[] = getSwampRoads(creep);
+  for (let target of getDamagedContainers(creep)) {
+    targets.push(target);
+  }
   let target: Structure | null = id
     ? Game.getObjectById(id)
-    : creep.pos.findClosestByPath(getDamagedContainers(creep));
+    : creep.pos.findClosestByPath(targets);
 
-  if (!target) target = creep.pos.findClosestByPath(getSwampRoads(creep));
   if (!target)
     target = creep.pos.findClosestByPath(getAllDamagedStructures(creep));
   if (!target) return buildRoads(creep);
@@ -29,9 +32,7 @@ function repair(creep: Creep): ScreepsReturnCode {
   if (target.hits === target.hitsMax) {
     delete creep.memory.targetId;
     delete creep.memory._trav;
-  }
-
-  creep.memory.targetId = target.id;
+  } else creep.memory.targetId = target.id;
   let code = creep.repair(target);
   if (code === ERR_NOT_IN_RANGE) {
     return creep.travelTo(target) as ScreepsReturnCode;

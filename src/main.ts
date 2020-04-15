@@ -137,21 +137,30 @@ function runTower(tower: StructureTower) {
 function runLink(link: StructureLink) {
   let target: StructureLink;
 
-  target = link.room.find(FIND_MY_STRUCTURES, {
+  let otherLinks = link.room.find(FIND_MY_STRUCTURES, {
     filter: s =>
       s instanceof StructureLink &&
-      s.store.getUsedCapacity(RESOURCE_ENERGY) <
-        link.store.getUsedCapacity('energy') / 2 &&
+      s.store.getUsedCapacity(RESOURCE_ENERGY) === 0 &&
       s.id !== link.id,
-  })[0] as StructureLink;
+  }) as StructureLink[];
 
-  if (!target) return;
+  if (link.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
+    // full link
+    // find the emptiest link
+    let target: StructureLink | null = null;
+    for (let otherlink of otherLinks) {
+      if (!target) target = otherlink;
+      if (
+        otherlink.store.getUsedCapacity(RESOURCE_ENERGY) <
+        target.store.getUsedCapacity(RESOURCE_ENERGY)
+      )
+        target = otherlink;
+    }
+    if (!target) return;
 
-  let amount =
-    (link.store.getUsedCapacity(RESOURCE_ENERGY) -
-      target.store.getUsedCapacity('energy')) /
-    2;
-  link.transferEnergy(target, amount);
+    let amount = target.store.getFreeCapacity(RESOURCE_ENERGY) - 1;
+    link.transferEnergy(target, amount);
+  }
 }
 
 function logCreeps(spawn: StructureSpawn) {

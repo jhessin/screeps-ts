@@ -27,13 +27,15 @@ function build(creep: Creep, site: ConstructionSite) {
 }
 
 function buildSite(creep: Creep): ScreepsReturnCode {
-  let site = containerSites(creep);
+  let site: ConstructionSite | void;
+
+  site = quickSites(creep);
+  if (site) return build(creep, site);
+
+  site = containerSites(creep);
   if (site) return build(creep, site);
 
   site = extensionSites(creep);
-  if (site) return build(creep, site);
-
-  site = quickSites(creep);
   if (site) return build(creep, site);
 
   site = allSites(creep);
@@ -57,7 +59,7 @@ function quickSites(creep: Creep): ConstructionSite | void {
   if (id) target = Game.getObjectById(id);
   if (target) return target as ConstructionSite;
   target = creep.pos.findClosestByPath(FIND_MY_CONSTRUCTION_SITES, {
-    filter: s => s.progressTotal - s.progress < 500,
+    filter: s => s.progressTotal - s.progress < 3000,
   });
   return target as ConstructionSite;
 }
