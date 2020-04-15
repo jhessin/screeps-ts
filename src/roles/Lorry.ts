@@ -1,10 +1,10 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './RoleNames';
+import { RoleName } from './RoleNames';
 
 let lorry: Role = {
   body: [CARRY, MOVE],
   memory: {
-    role: RoleNames.LORRY,
+    role: RoleName.LORRY,
     working: true,
     resourceType: RESOURCE_ENERGY,
   },

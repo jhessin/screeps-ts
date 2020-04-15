@@ -1,10 +1,10 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './RoleNames';
+import { RoleName } from './RoleNames';
 
 let specialist: Role = {
   body: [WORK, CARRY, MOVE, MOVE],
   memory: {
-    role: RoleNames.SPECIALIST,
+    role: RoleName.SPECIALIST,
     working: true,
   },
   harvest: creep => creep.harvestEnergy(),

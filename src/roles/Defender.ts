@@ -1,10 +1,10 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './RoleNames';
+import { RoleName } from './RoleNames';
 
 let defender: Role = {
   body: [TOUGH, RANGED_ATTACK, ATTACK, MOVE],
   memory: {
-    role: RoleNames.DEFENDER,
+    role: RoleName.DEFENDER,
     working: true,
   },
   work: defend,

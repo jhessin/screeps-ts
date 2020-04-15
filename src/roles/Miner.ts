@@ -1,10 +1,10 @@
 import { CreepsWithRole } from 'utils';
-import { RoleNames } from './RoleNames';
+import { RoleName } from './RoleNames';
 
 let miner: Role = {
   body: [MOVE, WORK, WORK, WORK, WORK, WORK],
   memory: {
-    role: RoleNames.MINER,
+    role: RoleName.MINER,
     working: true,
   },
   work: mine,
@@ -24,7 +24,7 @@ function mine(creep: Creep) {
           for (let name in Game.creeps) {
             let creep = Game.creeps[name];
             if (
-              creep.memory.role === RoleNames.MINER &&
+              creep.memory.role === RoleName.MINER &&
               creep.memory.sourceId === s.id
             )
               return false;
@@ -39,7 +39,7 @@ function mine(creep: Creep) {
         for (let name in Game.creeps) {
           let creep = Game.creeps[name];
           if (
-            creep.memory.role === RoleNames.MINER &&
+            creep.memory.role === RoleName.MINER &&
             creep.memory.sourceId === s.id
           )
             return false;

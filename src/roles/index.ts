@@ -5,16 +5,16 @@ import Repairer from './Repairer';
 import WallRepairer from './WallRepairer';
 import Upgrader from './Upgrader';
 import LinkLoader from './LinkLoader';
-import { RoleNames } from './RoleNames';
+import { RoleName } from './RoleNames';
 
 let basicRoles: RoleList = {
-  [RoleNames.MINER]: Miner,
-  [RoleNames.LORRY]: Lorry,
-  [RoleNames.LINK_LOADER]: LinkLoader,
-  [RoleNames.REPAIRER]: Repairer,
-  [RoleNames.UPGRADER]: Upgrader,
-  [RoleNames.BUILDER]: Builder,
-  [RoleNames.WALL_REPAIRER]: WallRepairer,
+  [RoleName.MINER]: Miner,
+  [RoleName.LORRY]: Lorry,
+  [RoleName.LINK_LOADER]: LinkLoader,
+  [RoleName.REPAIRER]: Repairer,
+  [RoleName.UPGRADER]: Upgrader,
+  [RoleName.BUILDER]: Builder,
+  [RoleName.WALL_REPAIRER]: WallRepairer,
 };
 
 export const BasicRoles = basicRoles;
@@ -24,7 +24,7 @@ import Salvager from './Salvager';
 import Defender from './Defender';
 
 export const SpecialRoles: RoleList = {
-  [RoleNames.SPECIALIST]: Specialist,
-  [RoleNames.SALVAGER]: Salvager,
-  [RoleNames.DEFENDER]: Defender,
+  [RoleName.SPECIALIST]: Specialist,
+  [RoleName.SALVAGER]: Salvager,
+  [RoleName.DEFENDER]: Defender,
 };
