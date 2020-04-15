@@ -5,7 +5,7 @@ import Repairer from './Repairer';
 import WallRepairer from './WallRepairer';
 import Upgrader from './Upgrader';
 import LinkLoader from './LinkLoader';
-import { RoleName } from './RoleNames';
+import { RoleName } from './RoleName';
 
 let basicRoles: RoleList = {
   [RoleName.MINER]: Miner,

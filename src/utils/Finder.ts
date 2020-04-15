@@ -1,4 +1,4 @@
-import { RoleName } from 'roles/RoleNames';
+import { RoleName } from 'roles/RoleName';
 import { CreepsWithRoleName } from './functions';
 
 // TODO Full refactor with smaller units.
