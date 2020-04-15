@@ -4,23 +4,45 @@ import { CreepsWithRoleName } from './functions';
 // TODO Full refactor with smaller units.
 
 const ROOMSIZE = 49;
-function getClaimedSources(): EnergySource[] {
-  let creeps = Object.values(Game.creeps);
-  let sources = [];
-  for (let creep of creeps) {
-    let id = creep.memory.sourceId;
-    if (!id) continue;
-    let source = Game.getObjectById(id);
-    if (source) sources.push(source);
-  }
-  return sources;
-}
 
 export class Finder {
   pos: RoomPosition;
 
   constructor(pos: RoomObject) {
     this.pos = pos.pos;
+  }
+
+  getClaimedSources(): EnergySource[] {
+    let creeps = this.pos.findInRange(FIND_MY_CREEPS, ROOMSIZE);
+    let sources = [];
+    for (let creep of creeps) {
+      let id = creep.memory.sourceId;
+      if (!id) continue;
+      let source = Game.getObjectById(id);
+      if (source) sources.push(source);
+    }
+    return sources;
+  }
+
+  isClaimedSource(source: EnergySource) {
+    return _.contains(this.getClaimedSources(), source);
+  }
+
+  getClaimedTargets(): (Structure | ConstructionSite)[] {
+    let creeps = this.pos.findInRange(FIND_MY_CREEPS, ROOMSIZE);
+    let targets: (Structure | ConstructionSite)[] = [];
+    for (let creep of creeps) {
+      let id = creep.memory.targetId;
+      if (!id) continue;
+      let target: Structure | ConstructionSite | null = Game.getObjectById(id);
+      if (target) targets.push(target);
+    }
+
+    return targets;
+  }
+
+  isClaimedTarget(target: Structure | ConstructionSite) {
+    return _.contains(this.getClaimedTargets(), target);
   }
 
   // Return all resources of a giver type (default ENERGY)
@@ -30,7 +52,7 @@ export class Finder {
     range: number = ROOMSIZE,
   ): Resource[] | null {
     return this.pos.findInRange(FIND_DROPPED_RESOURCES, range, {
-      filter: s => s.resourceType === type,
+      filter: s => s.resourceType === type && !this.isClaimedSource(s),
     });
   }
 
@@ -41,7 +63,7 @@ export class Finder {
     range: number = ROOMSIZE,
   ): Resource[] | null {
     return this.pos.findInRange(FIND_DROPPED_RESOURCES, range, {
-      filter: s => s.resourceType !== type,
+      filter: s => s.resourceType !== type && !this.isClaimedSource(s),
     });
   }
 
@@ -72,6 +94,8 @@ export class Finder {
     return enemies;
   }
 
+  /// find all sources (default inactive)
+  /// within range (default ROOMSIZE)
   public sources(active: boolean = false, range = ROOMSIZE): Source[] | null {
     return this.pos.findInRange(
       active ? FIND_SOURCES_ACTIVE : FIND_SOURCES,
@@ -79,18 +103,9 @@ export class Finder {
     );
   }
 
+  /// Find the closest of a list of objects by path
   public closestByPath(...objects: RoomObject[]): RoomObject | null {
     return this.pos.findClosestByPath(objects);
-  }
-
-  public structures(
-    type: StructureConstant | null = null,
-    range = ROOMSIZE,
-  ): Structure[] {
-    let filter = type ? (s: Structure) => s.structureType === type : {};
-    return this.pos.findInRange(FIND_STRUCTURES, range, {
-      filter,
-    });
   }
 
   // ----- OLD METHODS ----
@@ -101,7 +116,7 @@ export class Finder {
     let energy: EnergySource | null = this.pos.findClosestByPath(
       FIND_DROPPED_RESOURCES,
       {
-        filter: r => r.amount > min && !_.contains(getClaimedSources(), r),
+        filter: r => r.amount > min && !this.isClaimedSource(r),
       },
     );
 
@@ -109,14 +124,14 @@ export class Finder {
 
     // Next look for tombstones
     energy = this.pos.findClosestByPath(FIND_TOMBSTONES, {
-      filter: t => t.store.energy > min && !_.contains(getClaimedSources(), t),
+      filter: t => t.store.energy > min && !this.isClaimedSource(t),
     });
 
     if (energy) sources.push(energy);
 
     // Now for ruins
     energy = this.pos.findClosestByPath(FIND_RUINS, {
-      filter: s => s.store.energy > min && !_.contains(getClaimedSources(), s),
+      filter: s => s.store.energy > min && !this.isClaimedSource(s),
     });
 
     if (energy) sources.push(energy);
@@ -126,7 +141,7 @@ export class Finder {
       filter: s =>
         (s instanceof StructureContainer || s instanceof StructureLink) &&
         s.store.energy > min &&
-        !_.contains(getClaimedSources(), s),
+        !this.isClaimedSource(s),
     });
 
     if (energy) sources.push(energy);
@@ -160,7 +175,7 @@ export class Finder {
     let energy: EnergySource | null = this.pos.findClosestByPath(
       FIND_DROPPED_RESOURCES,
       {
-        filter: r => r.amount > min && !_.contains(getClaimedSources(), r),
+        filter: r => r.amount > min && !this.isClaimedSource(r),
       },
     );
 
@@ -168,14 +183,14 @@ export class Finder {
 
     // Next look for tombstones
     energy = this.pos.findClosestByPath(FIND_TOMBSTONES, {
-      filter: t => t.store.energy > min && !_.contains(getClaimedSources(), t),
+      filter: t => t.store.energy > min && !this.isClaimedSource(t),
     });
 
     if (energy) sources.push(energy);
 
     // Now for ruins
     energy = this.pos.findClosestByPath(FIND_RUINS, {
-      filter: s => s.store.energy > min && !_.contains(getClaimedSources(), s),
+      filter: s => s.store.energy > min && !this.isClaimedSource(s),
     });
 
     if (energy) sources.push(energy);
@@ -185,7 +200,7 @@ export class Finder {
       filter: s =>
         s instanceof StructureContainer &&
         s.store.energy > min &&
-        !_.contains(getClaimedSources(), s),
+        !this.isClaimedSource(s),
     });
 
     if (energy) sources.push(energy);
