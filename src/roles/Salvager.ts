@@ -2,12 +2,12 @@ import { CreepsWithRole } from 'utils';
 import { RoleName } from './RoleNames';
 
 const Salvager: Role = {
-  body: [WORK, MOVE],
+  body: [WORK, CARRY, MOVE, MOVE],
   memory: {
     role: RoleName.SALVAGER,
     working: true,
   },
-  work: salvage,
+  work: creep => creep.storeFreeEnergy(),
   harvest: salvage,
   creeps: function() {
     return CreepsWithRole(this);

@@ -34,10 +34,8 @@ function mine(creep: Creep) {
       });
 
   if (!source)
-    source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+    source = creep.pos.findClosestByPath(FIND_MINERALS, {
       filter: s => {
-        if (!(s instanceof StructureExtractor)) return false;
-
         for (let name in Game.creeps) {
           let creep = Game.creeps[name];
           if (

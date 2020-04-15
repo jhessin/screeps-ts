@@ -18,17 +18,18 @@ function repair(creep: Creep): ScreepsReturnCode {
   let id = creep.memory.targetId;
   let target: Structure | null = id
     ? Game.getObjectById(id)
-    : creep.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: s => {
-          if (s.hits === s.hitsMax || s instanceof StructureWall) return false;
-          for (let creep of CreepsWithRole(repairer)) {
-            if (creep.memory.targetId === s.id) return false;
-          }
-          return true;
-        },
-      });
+    : creep.pos.findClosestByPath(getDamagedContainers(creep));
 
+  if (!target) target = creep.pos.findClosestByPath(getSwampRoads(creep));
+  if (!target)
+    target = creep.pos.findClosestByPath(getAllDamagedStructures(creep));
   if (!target) return buildRoads(creep);
+
+  // invalidate healed targets
+  if (target.hits === target.hitsMax) {
+    delete creep.memory.targetId;
+    delete creep.memory._trav;
+  }
 
   creep.memory.targetId = target.id;
   let code = creep.repair(target);
@@ -39,6 +40,46 @@ function repair(creep: Creep): ScreepsReturnCode {
     return code;
   }
   return code;
+}
+
+function getAllDamagedStructures(creep: Creep): Structure[] {
+  return creep.room.find(FIND_STRUCTURES, {
+    filter: s => {
+      if (s instanceof StructureWall || s instanceof StructureRampart)
+        return false;
+      for (let creep of CreepsWithRole(repairer)) {
+        if (creep.memory.targetId === s.id) return false;
+      }
+      return s.hits < s.hitsMax;
+    },
+  });
+}
+
+function getSwampRoads(creep: Creep): StructureRoad[] {
+  return creep.room.find(FIND_STRUCTURES, {
+    filter: s => {
+      if (!(s instanceof StructureRoad)) return false;
+
+      for (let creep of CreepsWithRole(repairer)) {
+        if (creep.memory.targetId === s.id) return false;
+      }
+      let terrain = s.room.getTerrain();
+
+      if (terrain.get(s.pos.x, s.pos.y) !== TERRAIN_MASK_SWAMP) return false;
+      return s.hits < s.hitsMax;
+    },
+  }) as StructureRoad[];
+}
+
+function getDamagedContainers(creep: Creep): StructureContainer[] {
+  return creep.room.find(FIND_STRUCTURES, {
+    filter: s => {
+      for (let creep of CreepsWithRole(repairer)) {
+        if (creep.memory.targetId === s.id) return false;
+      }
+      return s instanceof StructureContainer && s.hits < s.hitsMax;
+    },
+  }) as StructureContainer[];
 }
 
 function buildRoads(creep: Creep): ScreepsReturnCode {

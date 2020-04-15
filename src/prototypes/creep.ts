@@ -3,8 +3,8 @@ import { BasicRoles, SpecialRoles } from 'roles';
 import { RoleName } from 'roles/RoleNames';
 
 Creep.prototype.run = function() {
-  if (!validateSource(this)) this.memory.sourceId = undefined;
-  if (!validateTarget(this)) this.memory.targetId = undefined;
+  if (!validateSource(this)) delete this.memory.sourceId;
+  if (!validateTarget(this)) delete this.memory.targetId;
 
   if (this.spawning) {
     return ERR_BUSY;
@@ -12,13 +12,13 @@ Creep.prototype.run = function() {
 
   if (this.memory.working && this.store.energy === 0) {
     this.memory.working = false;
-    this.memory.sourceId = undefined;
+    delete this.memory.targetId;
   } else if (
     !this.memory.working &&
     this.store.getFreeCapacity(RESOURCE_ENERGY) === 0
   ) {
     this.memory.working = true;
-    this.memory.targetId = undefined;
+    delete this.memory.sourceId;
   }
 
   // First check for basic roles
@@ -148,6 +148,8 @@ function validateSource(creep: Creep): boolean {
     return true;
 
   if (source instanceof Resource) return true;
+
+  if (source instanceof Mineral) return true;
 
   if (
     source instanceof StructureContainer &&

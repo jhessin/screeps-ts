@@ -84,8 +84,9 @@ StructureSpawn.prototype.spawnMiner = function(
   let numParts = Math.floor(energy / cost);
   let body: BodyPartConstant[] = role.body;
 
-  while (bodyCost(body) > energy && body.length > 2) {
+  while (bodyCost(body) > energy) {
     body.pop();
+    if (body.length === 2) break;
   }
 
   console.log(

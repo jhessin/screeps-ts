@@ -8,6 +8,7 @@ interface CreepMemory {
   sourceId?: Id<EnergySource>;
   targetId?: Id<Structure> | Id<ConstructionSite>;
   _trav?: Object;
+  resourceType?: ResourceConstant;
 }
 
 interface SpawnMemory {
@@ -38,7 +39,7 @@ interface StructureSpawn {
 
 // MINE
 
-type EnergySource = Source | Resource | Structure | Ruin | Tombstone;
+type EnergySource = Mineral | Source | Resource | Structure | Ruin | Tombstone;
 
 interface Role {
   body: BodyPartConstant[];
