@@ -8,79 +8,96 @@ const ROOMSIZE = 49;
 export class Finder {
   pos: RoomPosition;
 
+  /**
+   *Creates an instance of Finder.
+   * @param {RoomObject} pos
+   * @memberof Finder
+   */
   constructor(pos: RoomObject) {
     this.pos = pos.pos;
   }
 
-  getClaimedSources(): EnergySource[] {
+  /**
+   *
+   *
+   * @returns {Id<EnergySource>[]}
+   * @memberof Finder
+   */
+  getClaimedSourceIds(): Id<EnergySource>[] {
     let creeps = this.pos.findInRange(FIND_MY_CREEPS, ROOMSIZE);
     let sources = [];
     for (let creep of creeps) {
       let id = creep.memory.sourceId;
-      if (!id) continue;
-      let source = Game.getObjectById(id);
-      if (source) sources.push(source);
+      if (id) sources.push(id);
     }
     return sources;
   }
 
   isClaimedSource(source: EnergySource) {
-    return _.contains(this.getClaimedSources(), source);
+    return _.contains(this.getClaimedSourceIds(), source.id);
   }
 
-  getClaimedTargets(): (Structure | ConstructionSite)[] {
+  getClaimedTargetIds(): Id<Structure | ConstructionSite>[] {
     let creeps = this.pos.findInRange(FIND_MY_CREEPS, ROOMSIZE);
-    let targets: (Structure | ConstructionSite)[] = [];
+    let targets: Id<Structure | ConstructionSite>[] = [];
     for (let creep of creeps) {
       let id = creep.memory.targetId;
-      if (!id) continue;
-      let target: Structure | ConstructionSite | null = Game.getObjectById(id);
-      if (target) targets.push(target);
+      if (id) targets.push(id);
     }
 
     return targets;
   }
 
   isClaimedTarget(target: Structure | ConstructionSite) {
-    return _.contains(this.getClaimedTargets(), target);
+    return _.contains(this.getClaimedTargetIds(), target.id);
   }
 
-  // Return all resources of a giver type (default ENERGY)
-  // within a range (default entire room)
+  /** Return all resources of a given type (defaults to energy)
+   * If range is provided the results are limited to those in that range.
+   * @param  {ResourceConstant=RESOURCE_ENERGY} type
+   * @param  {number=ROOMSIZE} range
+   * @returns Resource[]
+   */
   public resources(
     type: ResourceConstant = RESOURCE_ENERGY,
     range: number = ROOMSIZE,
-  ): Resource[] | null {
+  ): Resource[] {
     return this.pos.findInRange(FIND_DROPPED_RESOURCES, range, {
       filter: s => s.resourceType === type && !this.isClaimedSource(s),
     });
   }
 
-  // Return all resources other than a given type (default ENERGY)
-  // within a range (default entire room)
+  /** Returns all resources other than a given type (default energy)
+   * If range is provided limit results to those
+   * @param  {ResourceConstant=RESOURCE_ENERGY} type
+   * @param  {number=ROOMSIZE} range
+   * @returns Resource[]
+   */
   public otherResources(
     type: ResourceConstant = RESOURCE_ENERGY,
     range: number = ROOMSIZE,
-  ): Resource[] | null {
+  ): Resource[] {
     return this.pos.findInRange(FIND_DROPPED_RESOURCES, range, {
       filter: s => s.resourceType !== type && !this.isClaimedSource(s),
     });
   }
 
-  public creepsWithRole(
-    role: RoleName,
-    target: Id<any> | null,
-    range: number = ROOMSIZE,
-  ): Creep[] {
+  /** Returns all the creeps with a given RoleName
+   * If range is provided it limits results to those within the given range.
+   * @param  {RoleName} role
+   * @param  {number=ROOMSIZE} range
+   * @returns Creep
+   */
+  public creepsWithRole(role: RoleName, range: number = ROOMSIZE): Creep[] {
     return this.pos.findInRange(FIND_MY_CREEPS, range, {
-      filter: s => {
-        if (!target) return s.memory.role === role;
-        return s.memory.role === role && s.memory.targetId === target;
-      },
+      filter: s => s.memory.role === role,
     });
   }
 
-  // find all enemies in the room or in range
+  /** Returns all enemies within a given range.
+   * @param  {number=ROOMSIZE} range=ROOMSIZE
+   * @returns AnyCreep
+   */
   public enemies(range = ROOMSIZE): AnyCreep[] {
     // first add the power creeps
     let enemies: AnyCreep[] = this.pos.findInRange(
@@ -94,23 +111,36 @@ export class Finder {
     return enemies;
   }
 
-  /// find all sources (default inactive)
-  /// within range (default ROOMSIZE)
-  public sources(active: boolean = false, range = ROOMSIZE): Source[] | null {
+  /** Find all the sources within a given range or within the room.
+   * @param  {boolean=false} active // Should we search only for active sources?
+   * @param {number=ROOMSIZE} range // The range that should be searched
+   *
+   * @returns Source
+   */
+  public sources(active = false, range = ROOMSIZE): Source[] {
     return this.pos.findInRange(
       active ? FIND_SOURCES_ACTIVE : FIND_SOURCES,
       range,
     );
   }
 
-  /// Find the closest of a list of objects by path
-  public closestByPath(...objects: RoomObject[]): RoomObject | null {
-    return this.pos.findClosestByPath(objects);
+  /** Find the closest of a list of objects by path
+   * @param  {RoomObject[]} ...objects
+   * @returns RoomObject
+   */
+  public closestByPath(...objects: RoomObject[][]): RoomObject | null {
+    let result: RoomObject[] = [];
+    for (let object of objects) {
+      let target = this.pos.findClosestByPath(object);
+      if (target) result.push(target);
+    }
+    return this.pos.findClosestByPath(result);
   }
 
   // ----- OLD METHODS ----
   // DEPRECATED
   public FindClosestFreeEnergy(min: number = 50): EnergySource | null {
+    // return this.closestByPath(this.resources() ) as EnergySource;
     // First get the nearest dropped resources.
     let sources: EnergySource[] = [];
     let energy: EnergySource | null = this.pos.findClosestByPath(
