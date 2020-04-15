@@ -66,7 +66,7 @@ function spawnAsNeeded(spawn: StructureSpawn) {
   logCreeps(spawn);
 
   // Emergency spawn
-  // MINERS ARE PRIMARY
+  // MINERS and LORRIES ARE PRIMARY
   let role = BasicRoles[RoleName.MINER];
   if (role.creeps().length < spawn.roleDemand(role)) {
     let code = spawn.spawnMiner();
