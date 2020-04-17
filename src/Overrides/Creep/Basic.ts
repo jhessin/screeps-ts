@@ -138,8 +138,9 @@ interface Creep {
 }
 
 interface CreepMemory {
-  targetId: Id<any>;
-  action: string;
+  targetId?: Id<any>;
+  action?: string;
+  resource?: ResourceConstant;
 }
 
 function travelOrReport(
@@ -190,9 +191,11 @@ if (!Creep.prototype._build) {
 
 if (!Creep.prototype._claimController) {
   Creep.prototype._claimController = Creep.prototype.claimController;
-  Creep.prototype.claimController = function() {
-    let target = this.room.controller;
-    if (!target) return ERR_INVALID_TARGET;
+  Creep.prototype.claimController = function(target) {
+    if (target.my) {
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
     this.memory.action = 'claimController';
     let code = this._claimController(target);
 
@@ -212,6 +215,13 @@ if (!Creep.prototype._dismantle) {
 if (!Creep.prototype._harvest) {
   Creep.prototype._harvest = Creep.prototype.harvest;
   Creep.prototype.harvest = function(target) {
+    if (
+      this.getActiveBodyparts(CARRY) > 0 &&
+      this.store.getFreeCapacity() === 0
+    ) {
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
     this.memory.action = 'harvest';
     let code = this._harvest(target);
     return travelOrReport(code, this, target) as 0;
@@ -230,6 +240,10 @@ if (!Creep.prototype._heal) {
 if (!Creep.prototype._pickup) {
   Creep.prototype._pickup = Creep.prototype.pickup;
   Creep.prototype.pickup = function(target) {
+    if (this.store.getFreeCapacity(target.resourceType) === 0) {
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
     this.memory.action = 'pickup';
     let code = this._pickup(target);
     return travelOrReport(code, this, target) as 0;
@@ -239,6 +253,10 @@ if (!Creep.prototype._pickup) {
 if (!Creep.prototype._repair) {
   Creep.prototype._repair = Creep.prototype.repair;
   Creep.prototype.repair = function(target) {
+    if (target.hits === target.hitsMax) {
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
     this.memory.action = 'repair';
     let code = this._repair(target);
     return travelOrReport(code, this, target) as 0;
@@ -247,9 +265,11 @@ if (!Creep.prototype._repair) {
 
 if (!Creep.prototype._reserveController) {
   Creep.prototype._reserveController = Creep.prototype.reserveController;
-  Creep.prototype.reserveController = function() {
-    let target = this.room.controller;
-    if (!target) return ERR_INVALID_TARGET;
+  Creep.prototype.reserveController = function(target) {
+    if (target.my) {
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
     this.memory.action = 'reserveController';
     let code = this._reserveController(target);
     return travelOrReport(code, this, target) as 0;
@@ -258,9 +278,12 @@ if (!Creep.prototype._reserveController) {
 
 if (!Creep.prototype._signController) {
   Creep.prototype._signController = Creep.prototype.signController;
-  Creep.prototype.signController = function(_, msg: string) {
-    let target = this.room.controller;
-    if (!target) return ERR_INVALID_TARGET;
+  Creep.prototype.signController = function(target, msg: string) {
+    if (target.sign && target.sign.username === this.owner.username) {
+      // already signed
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
     this.memory.action = 'signController';
     let code = this._signController(target, msg);
     return travelOrReport(code, this, target) as 0;
@@ -270,17 +293,31 @@ if (!Creep.prototype._signController) {
 if (!Creep.prototype._transfer) {
   Creep.prototype._transfer = Creep.prototype.transfer;
   Creep.prototype.transfer = function(target, resourceType, amount) {
+    if (
+      this.store.getUsedCapacity(resourceType) === 0 ||
+      (target as StructureStorage).store.getFreeCapacity(resourceType) === 0
+    ) {
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
     this.memory.action = 'transfer';
+    this.memory.resource = resourceType;
     let code = this.transfer(target, resourceType, amount);
+    if (code === OK) {
+      resetAction(this);
+      return code;
+    }
     return travelOrReport(code, this, target);
   };
 }
 
 if (!Creep.prototype._upgradeController) {
   Creep.prototype._upgradeController = Creep.prototype.upgradeController;
-  Creep.prototype.upgradeController = function() {
-    let target = this.room.controller;
-    if (!target) return ERR_INVALID_TARGET;
+  Creep.prototype.upgradeController = function(target) {
+    if (!target.my) {
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
     this.memory.action = 'upgradeController';
     let code = this._upgradeController(target);
     return travelOrReport(code, this, target);
@@ -290,8 +327,20 @@ if (!Creep.prototype._upgradeController) {
 if (!Creep.prototype._withdraw) {
   Creep.prototype._withdraw = Creep.prototype.withdraw;
   Creep.prototype.withdraw = function(target, resourceType, amount) {
+    if (
+      this.store.getFreeCapacity(resourceType) === 0 ||
+      (target as AnyStoreStructure).store[resourceType] === 0
+    ) {
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
     this.memory.action = 'withdraw';
+    this.memory.resource = resourceType;
     let code = this._withdraw(target, resourceType, amount);
     return travelOrReport(code, this, target);
   };
+}
+
+function resetAction(creep: Creep) {
+  delete creep.memory;
 }
