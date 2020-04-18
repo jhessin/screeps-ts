@@ -14,10 +14,18 @@ interface RoomPosition {
   findSignTarget(range: number): StructureController | void;
   findTransferTargetPrimary(
     range: number,
+    resource?: ResourceConstant,
   ): Structure | Creep | PowerCreep | void;
-  findTransferTargetSecondary(): Structure | Creep | PowerCreep;
-  findWithdrawTargetPrimary(range: number): Structure | Tombstone | Ruin;
-  findWithdrawTargetSecondary(): Structure | Tombstone | Ruin;
+  findTransferTargetSecondary(
+    resource?: ResourceConstant,
+  ): Structure | Creep | PowerCreep | void;
+  findWithdrawTargetPrimary(
+    range: number,
+    resource?: ResourceConstant,
+  ): Structure | Tombstone | Ruin | void;
+  findWithdrawTargetSecondary(
+    resource?: ResourceConstant,
+  ): Structure | Tombstone | Ruin | void;
 }
 
 RoomPosition.prototype.findBuildTarget = function(range) {
@@ -169,4 +177,86 @@ RoomPosition.prototype.findSignTarget = function(range) {
   return;
 };
 
-RoomPosition.prototype.findTransferTargetPrimary = function(range) {};
+RoomPosition.prototype.findTransferTargetPrimary = function(range, resource) {
+  let structure = this.findInRange(FIND_MY_STRUCTURES, range, {
+    filter: s => {
+      if (
+        s instanceof StructureSpawn ||
+        s instanceof StructureExtension ||
+        s instanceof StructureTower
+      ) {
+        let capacity = s.store.getFreeCapacity(resource);
+        if (capacity) {
+          return capacity > 0;
+        }
+      }
+      return false;
+    },
+  })[0];
+  if (structure) return structure;
+
+  let creep = this.findInRange(FIND_MY_CREEPS, range, {
+    filter: s =>
+      s.getActiveBodyparts(CARRY) > 0 &&
+      s.store.getUsedCapacity(resource) === 0,
+  })[0];
+  if (creep) return creep;
+
+  let powerCreep = this.findInRange(FIND_MY_POWER_CREEPS, range, {
+    filter: s => s.store.getFreeCapacity(resource) > 0,
+  })[0];
+  if (powerCreep) return powerCreep;
+  return;
+};
+
+RoomPosition.prototype.findTransferTargetSecondary = function(resource) {
+  let structure = this.findClosestByPath(FIND_STRUCTURES, {
+    filter: s => {
+      let store = (s as { store: GenericStore }).store;
+      if (!store) return false;
+      let capacity = store.getFreeCapacity(resource);
+      // If there is no capacity what does that mean?
+      if (!capacity) return false;
+      return capacity > 0;
+    },
+  });
+  if (structure) return structure;
+
+  return;
+};
+
+RoomPosition.prototype.findWithdrawTargetPrimary = function(range, resource) {
+  let tombstone = this.findInRange(FIND_TOMBSTONES, range, {
+    filter: s => s.store.getUsedCapacity(resource) > 0,
+  })[0];
+  if (tombstone) return tombstone;
+
+  let ruin = this.findInRange(FIND_RUINS, range, {
+    filter: s => s.store.getUsedCapacity(resource) > 0,
+  })[0];
+  if (ruin) return ruin;
+
+  let container = this.findInRange(FIND_STRUCTURES, range, {
+    filter: s =>
+      s instanceof StructureContainer && s.store.getUsedCapacity(resource) > 0,
+  })[0];
+  if (container) return container;
+  return;
+};
+
+RoomPosition.prototype.findWithdrawTargetSecondary = function(resource) {
+  // Secondary withdraw targets are Storage and Links
+  let structure = this.findClosestByPath(FIND_STRUCTURES, {
+    filter: s => {
+      if (!(s instanceof StructureStorage || s instanceof StructureLink))
+        return false;
+      let store = s.store;
+      if (!store) return false;
+      let usedCapacity = store[resource || RESOURCE_ENERGY];
+      return usedCapacity > 0;
+    },
+  });
+  if (structure) return structure;
+
+  return;
+};
