@@ -12,13 +12,13 @@ Creep.prototype.run = function() {
 
   if (this.memory.working && this.store.energy === 0) {
     this.memory.working = false;
-    delete this.memory.targetId;
+    if (this.memory.role !== RoleName.SPECIALIST) delete this.memory.targetId;
   } else if (
     !this.memory.working &&
     this.store.getFreeCapacity(RESOURCE_ENERGY) === 0
   ) {
     this.memory.working = true;
-    delete this.memory.sourceId;
+    if (this.memory.role !== RoleName.SPECIALIST) delete this.memory.sourceId;
   }
 
   // First check for basic roles

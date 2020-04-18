@@ -88,7 +88,11 @@ function spawnAsNeeded(spawn: StructureSpawn) {
     if (flag.name.startsWith('source')) sourceFlag = flag;
     else if (flag.name.startsWith('target')) targetFlag = flag;
   }
-  if (sourceFlag && targetFlag) {
+  if (
+    sourceFlag &&
+    targetFlag &&
+    SpecialRoles[RoleName.SPECIALIST].creeps().length === 0
+  ) {
     let sourceStructure = sourceFlag.pos.findInRange(
       FIND_STRUCTURES,
       0,
