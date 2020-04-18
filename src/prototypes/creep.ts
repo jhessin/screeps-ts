@@ -81,7 +81,10 @@ Creep.prototype.harvestEnergy = function() {
         ? this.harvest(target)
         : target instanceof Resource
         ? this.pickup(target)
-        : this.withdraw(target as Structure, RESOURCE_ENERGY);
+        : this.withdraw(
+            target as Structure,
+            this.memory.resourceType || RESOURCE_ENERGY,
+          );
     if (code === ERR_NOT_IN_RANGE) {
       return this.travelTo(target) as ScreepsReturnCode;
     } else if (code !== OK) {
@@ -102,7 +105,10 @@ Creep.prototype.storeFreeEnergy = function() {
     : finder.FindClosestStorageFacility();
   if (target) {
     this.memory.targetId = target.id;
-    let code = this.transfer(target, RESOURCE_ENERGY);
+    let code = this.transfer(
+      target,
+      this.memory.resourceType || RESOURCE_ENERGY,
+    );
     if (code === ERR_NOT_IN_RANGE) {
       return this.travelTo(target) as ScreepsReturnCode;
     } else if (code !== OK) {

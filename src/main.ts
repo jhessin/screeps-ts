@@ -98,12 +98,19 @@ function spawnAsNeeded(spawn: StructureSpawn) {
     else if (flag.name.startsWith('target')) targetFlag = flag;
   }
   if (sourceFlag && targetFlag) {
-    let sourceStructure = sourceFlag.pos.findInRange(FIND_STRUCTURES, 0)[0];
-    let targetStructure = targetFlag.pos.findInRange(FIND_STRUCTURES, 0)[0];
+    let sourceStructure = sourceFlag.pos.findInRange(
+      FIND_STRUCTURES,
+      0,
+    )[0] as StructureContainer;
+    let targetStructure = targetFlag.pos.findInRange(
+      FIND_STRUCTURES,
+      0,
+    )[0] as StructureTerminal;
     if (sourceStructure && targetStructure) {
       let role = SpecialRoles[RoleName.SPECIALIST];
       role.memory.sourceId = sourceStructure.id;
       role.memory.targetId = targetStructure.id;
+      role.memory.resourceType = RESOURCE_LEMERGIUM;
       return spawn.spawnRole(role);
     }
   }
