@@ -1,17 +1,8 @@
 interface RoomPosition {
+  // Things that use energy
   findBuildTarget(range: number): ConstructionSite | void;
-  findClaimTarget(): StructureController | void;
-  findDismantleTarget(range: number): Structure | void;
-  findHarvestTarget(range: number): Source | Mineral | Deposit | void;
-  findPickupTarget(range: number): Resource | void;
-  findPullTarget(range: number): Creep | void;
-  findAttackTarget(range: number): Creep | PowerCreep | Structure | void;
-  shouldMassAttack(): boolean;
-  findHealTarget(range: number): Creep | PowerCreep | void;
-  shouldMassHeal(): boolean;
   findRepairTarget(range: number): Structure | void;
-  findReserveTarget(): StructureController | void;
-  findSignTarget(range: number): StructureController | void;
+  findWallRepairTarget(): StructureWall | void;
   findTransferTargetPrimary(
     range: number,
     resource?: ResourceConstant,
@@ -19,6 +10,11 @@ interface RoomPosition {
   findTransferTargetSecondary(
     resource?: ResourceConstant,
   ): Structure | Creep | PowerCreep | void;
+
+  // Things that get energy
+  findDismantleTarget(range: number): Structure | void;
+  findHarvestTarget(range: number): Source | Mineral | Deposit | void;
+  findPickupTarget(range: number): Resource | void;
   findWithdrawTargetPrimary(
     range: number,
     resource?: ResourceConstant,
@@ -26,6 +22,22 @@ interface RoomPosition {
   findWithdrawTargetSecondary(
     resource?: ResourceConstant,
   ): Structure | Tombstone | Ruin | void;
+
+  // Things that require Claim part
+  findClaimTarget(): StructureController | void;
+  findReserveTarget(): StructureController | void;
+
+  // Things that require Attack or Ranged Attack part
+  findAttackTarget(range: number): Creep | PowerCreep | Structure | void;
+  shouldMassAttack(): boolean;
+
+  // Things that require heal part
+  findHealTarget(range: number): Creep | PowerCreep | void;
+  shouldMassHeal(): boolean;
+
+  // Other things
+  findPullTarget(range: number): Creep | void;
+  findSignTarget(range: number): StructureController | void;
 }
 
 RoomPosition.prototype.findBuildTarget = function(range) {
@@ -58,19 +70,21 @@ RoomPosition.prototype.findDismantleTarget = function(range) {
 };
 
 RoomPosition.prototype.findHarvestTarget = function(range) {
-  let source = this.findInRange(FIND_SOURCES_ACTIVE, range)[0];
+  let source = this.findInRange(FIND_SOURCES_ACTIVE, range, {
+    filter: s => !s.claimed(),
+  })[0];
   if (source) return source;
 
   let mineral = this.findInRange(FIND_MINERALS, range, {
     filter: s =>
       s.pos.findInRange(FIND_STRUCTURES, 0, {
-        filter: s => s instanceof StructureExtractor,
+        filter: s => s instanceof StructureExtractor && !s.claimed(),
       }).length > 0,
   })[0];
   if (mineral) return mineral;
 
   let deposit = this.findInRange(FIND_DEPOSITS, range, {
-    filter: s => s.cooldown <= range,
+    filter: s => s.cooldown <= range && !s.claimed(),
   })[0];
   if (deposit) return deposit;
 
@@ -259,4 +273,17 @@ RoomPosition.prototype.findWithdrawTargetSecondary = function(resource) {
   if (structure) return structure;
 
   return;
+};
+
+RoomPosition.prototype.findWallRepairTarget = function() {
+  let walls = this.findInRange(FIND_STRUCTURES, 79, {
+    filter: s => s instanceof StructureWall && s.hits < s.hitsMax,
+  }) as StructureWall[];
+
+  let target: StructureWall | undefined;
+  for (let wall of walls) {
+    if (!target) target = wall;
+    if (wall.hits < target.hits) target = wall;
+  }
+  return target;
 };

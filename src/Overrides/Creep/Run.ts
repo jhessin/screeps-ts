@@ -2,16 +2,191 @@ interface Creep {
   run(): number;
 }
 
-enum RoleType {
+enum Role {
   Miner = 'miner',
   Lorry = 'lorry',
   Worker = 'worker',
   Attacker = 'attacker',
+  Healer = 'healer',
   Claimer = 'claimer',
+  Scout = 'scout',
 }
 
+const Bodies: {
+  [name in Role]: BodyPartConstant[];
+} = {
+  [Role.Miner]: [MOVE, WORK, WORK, WORK, WORK, WORK],
+  [Role.Lorry]: [CARRY, MOVE],
+  [Role.Worker]: [WORK, CARRY, MOVE, MOVE],
+  [Role.Attacker]: [TOUGH, RANGED_ATTACK, ATTACK, MOVE, MOVE, MOVE],
+  [Role.Healer]: [TOUGH, RANGED_ATTACK, HEAL, MOVE, MOVE, MOVE],
+  [Role.Claimer]: [CLAIM, MOVE],
+  [Role.Scout]: [MOVE],
+};
+
+const ROOMSIZE = 79;
+
+function not_found(name: string) {
+  console.log(`Target not found for creep ${name}`);
+  return ERR_NOT_FOUND;
+}
+
+const Actions: {
+  [name in Role]: (creep: Creep) => ScreepsReturnCode;
+} = {
+  [Role.Scout]: function(creep) {
+    let scoutFlag = Game.flags.scout;
+    if (!scoutFlag) return not_found(creep.name);
+    return creep.travelTo(scoutFlag) as ScreepsReturnCode;
+  },
+  [Role.Miner]: function(creep) {
+    for (let range = 1; range <= ROOMSIZE; range++) {
+      let target = creep.pos.findHarvestTarget(range);
+      if (target) return creep.harvest(target);
+    }
+    return not_found(creep.name);
+  },
+  [Role.Lorry]: function(creep) {
+    let resources: ResourceConstant[] = [];
+    for (let resource of RESOURCES_ALL) {
+      if (creep.store.getUsedCapacity(resource) > 0) resources.push(resource);
+    }
+    if (creep.memory.working) {
+      for (let range = 1; range < ROOMSIZE; range++) {
+        // let build = creep.pos.findBuildTarget(range);
+        // if (build) return creep.build(build);
+        // let repair = creep.pos.findRepairTarget(range);
+        // if (repair) return creep.repair(repair);
+
+        for (let resource of resources) {
+          let transfer = creep.pos.findTransferTargetPrimary(range, resource);
+          if (transfer) return creep.transfer(transfer, resource);
+        }
+      }
+      // let wall = creep.pos.findWallRepairTarget();
+      // if (wall) return creep.repair(wall);
+
+      for (let resource of resources) {
+        let transfer = creep.pos.findTransferTargetSecondary(resource);
+        if (transfer) return creep.transfer(transfer, resource);
+      }
+    } else {
+      // Get energy
+      for (let range = 0; range < ROOMSIZE; range++) {
+        let pickup = creep.pos.findPickupTarget(range);
+        if (pickup) return creep.pickup(pickup);
+
+        for (let resource of RESOURCES_ALL) {
+          let withdraw = creep.pos.findWithdrawTargetPrimary(range, resource);
+          if (withdraw) return creep.withdraw(withdraw, resource);
+        }
+      }
+      for (let resource of RESOURCES_ALL) {
+        let withdraw = creep.pos.findWithdrawTargetSecondary(resource);
+        if (withdraw) return creep.withdraw(withdraw, resource);
+      }
+    }
+    return not_found(creep.name);
+  },
+  [Role.Worker]: function(creep) {
+    let resources: ResourceConstant[] = [];
+    for (let resource of RESOURCES_ALL) {
+      if (creep.store.getUsedCapacity(resource) > 0) resources.push(resource);
+    }
+    if (creep.memory.working) {
+      for (let range = 1; range < ROOMSIZE; range++) {
+        let build = creep.pos.findBuildTarget(range);
+        if (build) return creep.build(build);
+        let repair = creep.pos.findRepairTarget(range);
+        if (repair) return creep.repair(repair);
+
+        for (let resource of resources) {
+          let transfer = creep.pos.findTransferTargetPrimary(range, resource);
+          if (transfer) return creep.transfer(transfer, resource);
+        }
+      }
+      let wall = creep.pos.findWallRepairTarget();
+      if (wall) return creep.repair(wall);
+
+      for (let resource of resources) {
+        let transfer = creep.pos.findTransferTargetSecondary(resource);
+        if (transfer) return creep.transfer(transfer, resource);
+      }
+
+      let controller = creep.room.controller;
+      if (controller) return creep.upgradeController(controller);
+    } else {
+      // Get energy
+      for (let range = 0; range < ROOMSIZE; range++) {
+        let pickup = creep.pos.findPickupTarget(range);
+        if (pickup) return creep.pickup(pickup);
+
+        let dismantle = creep.pos.findDismantleTarget(range);
+        if (dismantle) return creep.dismantle(dismantle);
+
+        for (let resource of RESOURCES_ALL) {
+          let withdraw = creep.pos.findWithdrawTargetPrimary(range, resource);
+          if (withdraw) return creep.withdraw(withdraw, resource);
+        }
+
+        let harvest = creep.pos.findHarvestTarget(range);
+        if (harvest) return creep.harvest(harvest);
+      }
+      for (let resource of RESOURCES_ALL) {
+        let withdraw = creep.pos.findWithdrawTargetSecondary(resource);
+        if (withdraw) return creep.withdraw(withdraw, resource);
+      }
+    }
+    return not_found(creep.name);
+  },
+  [Role.Attacker]: function(creep) {
+    for (let range = 0; range < ROOMSIZE; range++) {
+      if (creep.pos.shouldMassAttack()) {
+        return creep.rangedMassAttack() as ScreepsReturnCode;
+      }
+
+      let attack = creep.pos.findAttackTarget(range);
+      if (attack) return creep.attack(attack);
+    }
+    let rally = Game.flags.rally;
+    if (rally) return creep.travelTo(rally) as ScreepsReturnCode;
+
+    return not_found(creep.name);
+  },
+  [Role.Healer]: function(creep) {
+    for (let range = 0; range < ROOMSIZE; range++) {
+      let heal = creep.pos.findHealTarget(range);
+      if (heal) return creep.heal(heal);
+
+      if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
+        if (creep.pos.shouldMassAttack()) return creep.rangedMassAttack();
+
+        let attack = creep.pos.findAttackTarget(range);
+        if (attack) return creep.attack(attack);
+      }
+    }
+    let rally = Game.flags.rally;
+    if (rally) return creep.travelTo(rally) as ScreepsReturnCode;
+
+    return not_found(creep.name);
+  },
+  [Role.Claimer]: function(creep) {
+    let target = creep.pos.findClaimTarget();
+    if (target) {
+      let code = creep.claimController(target);
+      if (code === ERR_GCL_NOT_ENOUGH) {
+        return creep.reserveController(target);
+      } else {
+        return code;
+      }
+    }
+    return not_found(creep.name);
+  },
+};
+
 interface CreepMemory {
-  role?: RoleType;
+  role?: Role;
+  resource?: ResourceConstant;
   working?: boolean;
 }
 
@@ -21,33 +196,34 @@ function setState(creep: Creep) {
     creep.getActiveBodyparts(CARRY) > 0
   ) {
     // lorry
-    creep.memory.role = RoleType.Lorry;
+    creep.memory.role = Role.Lorry;
   } else if (
     creep.getActiveBodyparts(CARRY) === 0 &&
     creep.getActiveBodyparts(WORK) > 0
   ) {
     // miner
-    creep.memory.role = RoleType.Miner;
+    creep.memory.role = Role.Miner;
   } else if (
     creep.getActiveBodyparts(CARRY) > 0 &&
     creep.getActiveBodyparts(WORK) > 0
   ) {
     // worker
-    creep.memory.role = RoleType.Worker;
+    creep.memory.role = Role.Worker;
+  } else if (creep.getActiveBodyparts(HEAL) > 0) {
+    creep.memory.role = Role.Healer;
   } else if (
-    creep.getActiveBodyparts(ATTACK) > 0 ||
+    creep.getActiveBodyparts(ATTACK) > 0 &&
     creep.getActiveBodyparts(RANGED_ATTACK) > 0
   ) {
     // attacker
-    creep.memory.role = RoleType.Attacker;
+    creep.memory.role = Role.Attacker;
   } else if (creep.getActiveBodyparts(CLAIM) > 0) {
-    creep.memory.role = RoleType.Claimer;
+    creep.memory.role = Role.Claimer;
+  } else {
+    creep.memory.role = Role.Scout;
   }
 
-  if (
-    creep.memory.role !== RoleType.Miner &&
-    creep.memory.role !== RoleType.Attacker
-  ) {
+  if (creep.memory.role !== Role.Miner && creep.memory.role !== Role.Attacker) {
     if (creep.memory.working && creep.store.getUsedCapacity() === 0) {
       creep.memory.working = false;
     } else if (!creep.memory.working && creep.store.getFreeCapacity() === 0) {
@@ -65,138 +241,13 @@ Creep.prototype.run = function() {
   if (code !== false) return code;
 
   // otherwise inspect for a task
-  for (let range = 1; range < 79; range++) {
-    // TODO find appropriate actions based on active body parts.
-    switch (this.memory.role) {
-      case RoleType.Attacker:
-        // are we ranged?
-        if (this.getActiveBodyparts(RANGED_ATTACK) > 0) {
-          // Do we have more than one target in range?
-          let targets: (Creep | PowerCreep | Structure)[];
-          targets = this.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-          for (let target of this.pos.findInRange(
-            FIND_HOSTILE_POWER_CREEPS,
-            3,
-          )) {
-            targets.push(target);
-          }
-          for (let target of this.pos.findInRange(FIND_HOSTILE_STRUCTURES, 3)) {
-            targets.push(target);
-          }
-          for (let target of this.pos.findInRange(FIND_HOSTILE_SPAWNS, 3)) {
-            targets.push(target);
-          }
-
-          if (targets.length > 1) {
-            return this.rangedMassAttack();
-          } else {
-            let target = targets[0];
-            if (target) return this.rangedAttack(target);
-          }
-        }
-        // find enemies or rally flags
-        let target: Creep | PowerCreep | Structure = this.pos.findInRange(
-          FIND_HOSTILE_CREEPS,
-          range,
-        )[0];
-        if (target) return this.attack(target);
-        target = this.pos.findInRange(FIND_HOSTILE_POWER_CREEPS, range)[0];
-        if (target) return this.attack(target);
-        target = this.pos.findInRange(FIND_HOSTILE_STRUCTURES, range)[0];
-        if (target) return this.attack(target);
-
-        let flag = Game.flags.rally;
-        if (flag) return this.travelTo(flag);
-        break;
-      case RoleType.Lorry:
-        if (this.memory.working) {
-          // look for something to do with energy
-          // find energy use facility
-          let target: RoomObject | null = this.pos.findInRange(
-            FIND_STRUCTURES,
-            range,
-            {
-              filter: s =>
-                (s instanceof StructureSpawn ||
-                  s instanceof StructureExtension ||
-                  s instanceof StructureTower) &&
-                s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-            },
-          )[0];
-          if (target)
-            return this.transfer(target as Structure, RESOURCE_ENERGY);
-
-          // find any other structures that have storage
-          target = this.pos.findInRange(FIND_STRUCTURES, range, {
-            filter: s => {
-              let storable = s as { store: GenericStore };
-              let store = storable.store;
-              let capacity = store.getFreeCapacity(RESOURCE_ENERGY);
-              return capacity && capacity > 0;
-            },
-          })[0];
-          if (target)
-            return this.transfer(target as Structure, RESOURCE_ENERGY);
-
-          // find creeps with no energy and give half
-          target = this.pos.findInRange(FIND_MY_CREEPS, range, {
-            filter: s => s.store.getUsedCapacity(RESOURCE_ENERGY) === 0,
-          })[0];
-          if (target)
-            return this.transfer(
-              target as Creep,
-              RESOURCE_ENERGY,
-              this.store.getUsedCapacity(RESOURCE_ENERGY) / 2,
-            );
-        } else {
-          // TODO No Energy try to find some
-          // find dropped resources
-          // find tombstones
-          // find ruins
-        }
-        break;
-      case RoleType.Worker:
-        if (this.memory.working) {
-          // find repair targets
-          let target: Structure | ConstructionSite = this.pos.findInRange(
-            FIND_STRUCTURES,
-            range,
-            {
-              filter: s =>
-                s.hits < s.hitsMax &&
-                !(s instanceof StructureWall || s instanceof StructureRampart),
-            },
-          )[0];
-          if (target) return this.repair(target as Structure);
-
-          // find build targets
-          target = this.pos.findInRange(FIND_CONSTRUCTION_SITES, range)[0];
-          if (target) return this.build(target);
-
-          // find the room controller to upgrade
-          target = this.pos.findInRange(FIND_STRUCTURES, range, {
-            filter: s => s instanceof StructureController,
-          })[0];
-          if (target)
-            return this.upgradeController(target as StructureController);
-        } else {
-          // not working
-          // TODO Gather energy
-        }
-      case RoleType.Miner:
-        // find sources that aren't being mined
-        let source = this.pos.findInRange(FIND_SOURCES, range, {
-          filter: s => {
-            for (let creep of s.room.find(FIND_MY_CREEPS)) {
-              if (creep.memory.targetId === s.id) return false;
-            }
-            return true;
-          },
-        })[0];
-        if (source) this.harvest(source);
-    }
+  let role = this.memory.role;
+  if (!role) {
+    console.log(`ERROR: role not being assigned for creep ${this.name}`);
+    role = Role.Scout;
   }
-  return OK;
+
+  return Actions[role](this);
 };
 
 function runExistingAction(creep: Creep): ScreepsReturnCode | false {
