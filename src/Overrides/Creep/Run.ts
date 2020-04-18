@@ -225,6 +225,8 @@ function runExistingAction(creep: Creep): ScreepsReturnCode | false {
     case 'pickup':
     case 'reserveController':
     case 'upgradeController':
+    case 'generateSafeMode':
+    case 'pull':
       return creep[action](target);
     case 'transfer':
     case 'withdraw':

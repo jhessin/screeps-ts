@@ -58,6 +58,8 @@ interface Creep {
     | ERR_TIRED
     | ERR_NO_BODYPART;
 
+  _generateSafeMode(target: StructureController): ScreepsReturnCode;
+
   _harvest(
     target: Source | Mineral | Deposit,
   ):
@@ -91,6 +93,16 @@ interface Creep {
     | ERR_INVALID_TARGET
     | ERR_FULL
     | ERR_TIRED
+    | ERR_NOT_IN_RANGE
+    | ERR_NO_BODYPART;
+
+  _pull(
+    target: Creep,
+  ):
+    | OK
+    | ERR_NOT_OWNER
+    | ERR_BUSY
+    | ERR_INVALID_TARGET
     | ERR_NOT_IN_RANGE
     | ERR_NO_BODYPART;
 
@@ -153,8 +165,7 @@ function travelOrReport(
     creep.travelTo(target);
   } else if (code !== OK) {
     console.log(`Couldn't attack: ${code}`);
-    delete creep.memory.targetId;
-    delete creep.memory._trav;
+    resetAction(creep);
   }
 
   return code;
@@ -212,6 +223,19 @@ if (!Creep.prototype._dismantle) {
   };
 }
 
+if (!Creep.prototype._generateSafeMode) {
+  Creep.prototype._generateSafeMode = Creep.prototype.generateSafeMode;
+  Creep.prototype.generateSafeMode = function(target) {
+    if (!target.my) {
+      resetAction(this);
+      return ERR_INVALID_TARGET;
+    }
+    this.memory.action = 'generateSafeMode';
+    let code = this._generateSafeMode(target);
+    return travelOrReport(code, this, target) as 0;
+  };
+}
+
 if (!Creep.prototype._harvest) {
   Creep.prototype._harvest = Creep.prototype.harvest;
   Creep.prototype.harvest = function(target) {
@@ -247,6 +271,32 @@ if (!Creep.prototype._pickup) {
     this.memory.action = 'pickup';
     let code = this._pickup(target);
     return travelOrReport(code, this, target) as 0;
+  };
+}
+
+if (!Creep.prototype._pull) {
+  Creep.prototype._pull = Creep.prototype.pull;
+  Creep.prototype.pull = function(target) {
+    if (
+      target.getActiveBodyparts(MOVE) > 0 ||
+      this.getActiveBodyparts(MOVE) === 0
+    )
+      return resetAction(this);
+    let targetId = target.memory.targetId;
+    if (!targetId) return resetAction(this);
+    let finalTarget = Game.getObjectById(targetId);
+    if (!finalTarget) return resetAction(this);
+
+    this.memory.action = 'pull';
+    this.memory.targetId = target.id;
+    let code = this._pull(target);
+    if (this.pos.isNearTo(target)) {
+      target.travelTo(this);
+      this.travelTo(finalTarget);
+      return code;
+    } else {
+      return travelOrReport(code, this, target) as 0;
+    }
   };
 }
 
@@ -343,4 +393,5 @@ if (!Creep.prototype._withdraw) {
 
 function resetAction(creep: Creep) {
   delete creep.memory;
+  return ERR_INVALID_TARGET;
 }
