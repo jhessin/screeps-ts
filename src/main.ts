@@ -7,6 +7,11 @@ import 'Overrides';
 export const loop = ErrorMapper.wrapLoop(() => {
   console.log(`Current game tick is ${Game.time}`);
 
+  // Run all creeps in the game
+  for (const creep of Object.values(Game.creeps)) {
+    creep.run();
+  }
+
   // Automatically delete memory of missing creeps
   for (const name in Memory.creeps) {
     if (!(name in Game.creeps)) {
