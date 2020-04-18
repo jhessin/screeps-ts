@@ -82,15 +82,6 @@ function spawnAsNeeded(spawn: StructureSpawn) {
     return code;
   }
 
-  // Spawn a minimum of each other role
-  for (let role of Object.values(BasicRoles)) {
-    if (role.creeps().length === 0) {
-      if (role.memory.role === RoleName.LORRY)
-        return spawn.spawnRole(role, true);
-      return spawn.spawnRole(role);
-    }
-  }
-
   // Spawn specialists as needed
   let sourceFlag: Flag | undefined, targetFlag: Flag | undefined;
   for (let flag of Object.values(Game.flags)) {
@@ -111,6 +102,15 @@ function spawnAsNeeded(spawn: StructureSpawn) {
       role.memory.sourceId = sourceStructure.id;
       role.memory.targetId = targetStructure.id;
       role.memory.resourceType = RESOURCE_LEMERGIUM;
+      return spawn.spawnRole(role);
+    }
+  }
+
+  // Spawn a minimum of each other role
+  for (let role of Object.values(BasicRoles)) {
+    if (role.creeps().length === 0) {
+      if (role.memory.role === RoleName.LORRY)
+        return spawn.spawnRole(role, true);
       return spawn.spawnRole(role);
     }
   }
