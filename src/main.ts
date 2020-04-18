@@ -91,6 +91,23 @@ function spawnAsNeeded(spawn: StructureSpawn) {
     }
   }
 
+  // Spawn specialists as needed
+  let sourceFlag: Flag | undefined, targetFlag: Flag | undefined;
+  for (let flag of Object.values(Game.flags)) {
+    if (flag.name.startsWith('source')) sourceFlag = flag;
+    else if (flag.name.startsWith('target')) targetFlag = flag;
+  }
+  if (sourceFlag && targetFlag) {
+    let sourceStructure = sourceFlag.pos.findInRange(FIND_STRUCTURES, 0)[0];
+    let targetStructure = targetFlag.pos.findInRange(FIND_STRUCTURES, 0)[0];
+    if (sourceStructure && targetStructure) {
+      let role = SpecialRoles[RoleName.SPECIALIST];
+      role.memory.sourceId = sourceStructure.id;
+      role.memory.targetId = targetStructure.id;
+      return spawn.spawnRole(role);
+    }
+  }
+
   // Spawn defenders if needed
   let defenderRole = SpecialRoles[RoleName.DEFENDER];
   let defenders = defenderRole.creeps();
@@ -158,7 +175,7 @@ function runLink(link: StructureLink) {
     }
     if (!target) return;
 
-    let amount = target.store.getFreeCapacity(RESOURCE_ENERGY) - 1;
+    let amount = target.store.getFreeCapacity(RESOURCE_ENERGY) / 2;
     link.transferEnergy(target, amount);
   }
 }
