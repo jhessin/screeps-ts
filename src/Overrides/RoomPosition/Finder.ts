@@ -30,7 +30,8 @@ RoomPosition.prototype.findClaimTarget = function() {
       room.controller &&
       !room.controller.my &&
       !room.controller.owner &&
-      !room.controller.reservation
+      (!room.controller.reservation ||
+        room.controller.reservation.username === 'Jhessin')
     )
       return room.controller;
   }
@@ -61,7 +62,7 @@ RoomPosition.prototype.findHarvestTarget = function(range) {
   if (mineral) return mineral;
 
   let deposit = this.findInRange(FIND_DEPOSITS, range, {
-    filter: s => s.cooldown < range,
+    filter: s => s.cooldown <= range,
   })[0];
   if (deposit) return deposit;
 
@@ -148,5 +149,24 @@ RoomPosition.prototype.findRepairTarget = function(range) {
 RoomPosition.prototype.findReserveTarget = function() {
   for (let room of Object.values(Game.rooms)) {
     let controller = room.controller;
+    if (!controller) continue;
+    if (controller.my) continue;
+    if (controller.reservation) continue;
+    if (controller.owner) continue;
+    return controller;
   }
+  return;
 };
+
+RoomPosition.prototype.findSignTarget = function(range) {
+  for (let room of Object.values(Game.rooms)) {
+    let controller = room.controller;
+    if (!controller) continue;
+    let sign = controller.sign;
+    if (!sign) return controller;
+    if (controller.my && sign.username != 'Jhessin') return controller;
+  }
+  return;
+};
+
+RoomPosition.prototype.findTransferTargetPrimary = function(range) {};
