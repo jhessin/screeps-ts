@@ -395,3 +395,5 @@ function resetAction(creep: Creep) {
   delete creep.memory;
   return ERR_INVALID_TARGET;
 }
+
+global.resetAction = resetAction;

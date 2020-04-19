@@ -13,6 +13,8 @@ enum Role {
   Upgrader = 'upgrader',
 }
 
+global.Role = Role;
+
 const Bodies: {
   [name in Role]: BodyPartConstant[];
 } = {
@@ -25,6 +27,8 @@ const Bodies: {
   [Role.Claimer]: [CLAIM, MOVE],
   [Role.Scout]: [MOVE],
 };
+
+global.Bodies = Bodies;
 
 const ROOMSIZE = 79;
 

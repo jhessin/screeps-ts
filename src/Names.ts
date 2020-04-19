@@ -35,3 +35,5 @@ function getRandomName(room: Room) {
   }
   return 'ENDOFTHELINE!!!!!!';
 }
+
+global.getRandomName = getRandomName;
