@@ -1,5 +1,5 @@
 /// These are the names of the creeps - they should never be used up.
-export const names = [
+const names = [
   'Jim',
   'Crystal',
   'Nathan',
@@ -25,12 +25,12 @@ export const names = [
   'Katie',
 ];
 
-export function getRandomName() {
+function getRandomName(room: Room) {
   for (let name of names) {
     if (Game.creeps[name]) {
       continue;
     } else {
-      return name;
+      return `${name}_${room.name}`;
     }
   }
   return 'ENDOFTHELINE!!!!!!';

@@ -1,3 +1,5 @@
 import './Creep';
-import './RoomPosition';
+import './Room';
 import './RoomObject';
+import './RoomPosition';
+import './Spawn';

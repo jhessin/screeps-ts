@@ -10,6 +10,7 @@ enum Role {
   Healer = 'healer',
   Claimer = 'claimer',
   Scout = 'scout',
+  Upgrader = 'upgrader',
 }
 
 const Bodies: {
@@ -18,6 +19,7 @@ const Bodies: {
   [Role.Miner]: [MOVE, WORK, WORK, WORK, WORK, WORK],
   [Role.Lorry]: [CARRY, MOVE],
   [Role.Worker]: [WORK, CARRY, MOVE, MOVE],
+  [Role.Upgrader]: [WORK, CARRY, MOVE, MOVE],
   [Role.Attacker]: [TOUGH, RANGED_ATTACK, ATTACK, MOVE, MOVE, MOVE],
   [Role.Healer]: [TOUGH, RANGED_ATTACK, HEAL, MOVE, MOVE, MOVE],
   [Role.Claimer]: [CLAIM, MOVE],
@@ -34,6 +36,33 @@ function not_found(name: string) {
 const Actions: {
   [name in Role]: (creep: Creep) => ScreepsReturnCode;
 } = {
+  [Role.Upgrader]: function(creep) {
+    if (creep.memory.working) {
+      let controller = creep.room.controller;
+      if (controller) return creep.upgradeController(controller);
+    } else {
+      // Get energy
+      for (let range = 0; range < ROOMSIZE; range++) {
+        let pickup = creep.pos.findPickupTarget(range);
+        if (pickup) return creep.pickup(pickup);
+
+        let dismantle = creep.pos.findDismantleTarget(range);
+        if (dismantle) return creep.dismantle(dismantle);
+
+        let withdraw = creep.pos.findWithdrawTargetPrimary(
+          range,
+          RESOURCE_ENERGY,
+        );
+        if (withdraw) return creep.withdraw(withdraw, RESOURCE_ENERGY);
+
+        let harvest = creep.pos.findHarvestTarget(range);
+        if (harvest) return creep.harvest(harvest);
+      }
+      let withdraw = creep.pos.findWithdrawTargetSecondary(RESOURCE_ENERGY);
+      if (withdraw) return creep.withdraw(withdraw, RESOURCE_ENERGY);
+    }
+    return not_found(creep.name);
+  },
   [Role.Scout]: function(creep) {
     let scoutFlag = Game.flags.scout;
     if (!scoutFlag) return not_found(creep.name);
@@ -191,7 +220,9 @@ interface CreepMemory {
 }
 
 function setState(creep: Creep) {
-  if (
+  if (creep.memory.role === Role.Upgrader) {
+    // do nothing
+  } else if (
     creep.getActiveBodyparts(WORK) === 0 &&
     creep.getActiveBodyparts(CARRY) > 0
   ) {

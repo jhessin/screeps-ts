@@ -1,4 +1,5 @@
 import { ErrorMapper } from 'utils/ErrorMapper';
+import 'Names';
 import 'Traveler/Traveler';
 import 'Overrides';
 
@@ -10,6 +11,10 @@ export const loop = ErrorMapper.wrapLoop(() => {
   // Run all creeps in the game
   for (const creep of Object.values(Game.creeps)) {
     creep.run();
+  }
+
+  for (const spawn of Object.values(Game.spawns)) {
+    spawn.run();
   }
 
   // Automatically delete memory of missing creeps
