@@ -164,7 +164,7 @@ function travelOrReport(
   if (code === ERR_NOT_IN_RANGE) {
     creep.travelTo(target);
   } else if (code !== OK) {
-    console.log(`Couldn't attack: ${code}`);
+    console.log(`Couldn't interact: ${code}`);
     resetAction(creep);
   }
 
@@ -352,7 +352,7 @@ if (!Creep.prototype._transfer) {
     }
     this.memory.action = 'transfer';
     this.memory.resource = resourceType;
-    let code = this.transfer(target, resourceType, amount);
+    let code = this._transfer(target, resourceType, amount);
     if (code === OK) {
       resetAction(this);
       return code;
@@ -392,7 +392,12 @@ if (!Creep.prototype._withdraw) {
 }
 
 function resetAction(creep: Creep) {
-  delete creep.memory;
+  // delete Memory.creeps[creep.name];
+  delete creep.memory._trav;
+  delete creep.memory.action;
+  delete creep.memory.resource;
+  delete creep.memory.targetId;
+
   return ERR_INVALID_TARGET;
 }
 

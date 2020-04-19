@@ -224,8 +224,13 @@ interface CreepMemory {
 }
 
 function setState(creep: Creep) {
-  if (creep.memory.role === Role.Upgrader) {
-    // do nothing
+  if (
+    creep.memory.role === Role.Upgrader &&
+    creep.getActiveBodyparts(WORK) > 0 &&
+    creep.getActiveBodyparts(CARRY) > 0
+  ) {
+    // Upgrader
+    creep.memory.role = Role.Upgrader;
   } else if (
     creep.getActiveBodyparts(WORK) === 0 &&
     creep.getActiveBodyparts(CARRY) > 0
@@ -268,6 +273,8 @@ function setState(creep: Creep) {
 }
 
 Creep.prototype.run = function() {
+  if (this.spawning) return ERR_BUSY;
+
   // first update state
   setState(this);
 

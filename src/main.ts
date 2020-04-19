@@ -1,18 +1,11 @@
 import { ErrorMapper } from 'utils/ErrorMapper';
 import './Names';
 import './Traveler/Traveler';
-import './Overrides/Creep/Basic';
-import './Overrides/Creep/Run';
-import './Overrides/Room/FindCreeps';
-import './Overrides/RoomObject/Claimed';
-import './Overrides/RoomPosition/Finder';
-import './Overrides/Spawn/Spawner';
+import './Overrides';
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
-  console.log(`Current game tick is ${Game.time}`);
-
   // Run all creeps in the game
   for (const creep of Object.values(Game.creeps)) {
     creep.run();

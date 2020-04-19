@@ -66,7 +66,11 @@ StructureSpawn.prototype.run = function() {
   minMiners += this.room.find(FIND_STRUCTURES, {
     filter: s => s instanceof StructureExtractor,
   }).length;
-  let minLorries = Math.floor(totalEnergy / 1000);
+  let minLorries = Math.floor(totalEnergy / 100);
+
+  // First spawn emergencies
+  if (miners.length === 0) return this.spawnRole(Role.Miner, true);
+  if (lorries.length === 0) return this.spawnRole(Role.Lorry, true);
 
   // First ensure there are upgraders;
   if (upgraders.length === 0) return this.spawnRole(Role.Upgrader);

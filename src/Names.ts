@@ -27,10 +27,11 @@ const names = [
 
 function getRandomName(room: Room) {
   for (let name of names) {
+    name = `${name}_${room.name}`;
     if (Game.creeps[name]) {
       continue;
     } else {
-      return `${name}_${room.name}`;
+      return name;
     }
   }
   return 'ENDOFTHELINE!!!!!!';
