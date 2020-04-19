@@ -11,8 +11,18 @@ export const loop = ErrorMapper.wrapLoop(() => {
     creep.run();
   }
 
+  // Run spawns
   for (const spawn of Object.values(Game.spawns)) {
     spawn.run();
+  }
+
+  // Run Links
+  for (const room of Object.values(Game.rooms)) {
+    for (const link of room.find(FIND_MY_STRUCTURES, {
+      filter: s => s instanceof StructureLink,
+    }) as StructureLink[]) {
+      link.run();
+    }
   }
 
   // Automatically delete memory of missing creeps

@@ -163,8 +163,9 @@ function travelOrReport(
   creep.memory.targetId = target.id;
   if (code === ERR_NOT_IN_RANGE) {
     creep.travelTo(target);
-  } else if (code !== OK) {
-    console.log(`Couldn't interact: ${code}`);
+  } else if (code !== OK && code !== ERR_TIRED) {
+    creep.say('ERROR!');
+    console.log(`${creep.name} Couldn't interact: ${code}`);
     resetAction(creep);
   }
 

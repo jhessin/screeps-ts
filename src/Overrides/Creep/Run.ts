@@ -33,7 +33,7 @@ global.Bodies = Bodies;
 const ROOMSIZE = 79;
 
 function not_found(name: string) {
-  console.log(`Target not found for creep ${name}`);
+  console.log(`Target not found for ${name}`);
   return ERR_NOT_FOUND;
 }
 
@@ -47,8 +47,9 @@ const Actions: {
     } else {
       // Get energy
       for (let range = 0; range < ROOMSIZE; range++) {
-        let pickup = creep.pos.findPickupTarget(range);
-        if (pickup) return creep.pickup(pickup);
+        let pickup = creep.pos.findPickupTarget(range, RESOURCE_ENERGY);
+        if (pickup && pickup.resourceType === RESOURCE_ENERGY)
+          return creep.pickup(pickup);
 
         let dismantle = creep.pos.findDismantleTarget(range);
         if (dismantle) return creep.dismantle(dismantle);
@@ -59,67 +60,89 @@ const Actions: {
         );
         if (withdraw) return creep.withdraw(withdraw, RESOURCE_ENERGY);
 
-        let harvest = creep.pos.findHarvestTarget(range);
+        let harvest = creep.pos.findHarvestTarget(range, RESOURCE_ENERGY);
         if (harvest) return creep.harvest(harvest);
       }
       let withdraw = creep.pos.findWithdrawTargetSecondary(RESOURCE_ENERGY);
       if (withdraw) return creep.withdraw(withdraw, RESOURCE_ENERGY);
     }
-    return not_found(creep.name);
+    return not_found(creep.memory.role as string);
   },
   [Role.Scout]: function(creep) {
     let scoutFlag = Game.flags.scout;
-    if (!scoutFlag) return not_found(creep.name);
+    if (!scoutFlag) return not_found(creep.memory.role as string);
     return creep.travelTo(scoutFlag) as ScreepsReturnCode;
   },
   [Role.Miner]: function(creep) {
     for (let range = 1; range <= ROOMSIZE; range++) {
       let target = creep.pos.findHarvestTarget(range);
-      if (target) return creep.harvest(target);
+      if (target) {
+        let container = target.pos.findInRange(FIND_STRUCTURES, 1, {
+          filter: s =>
+            s instanceof StructureContainer && s.store.getFreeCapacity() > 0,
+        })[0];
+        if (container) {
+          if (creep.pos.isEqualTo(container.pos)) {
+            return creep.harvest(target);
+          } else {
+            return creep.travelTo(container) as ScreepsReturnCode;
+          }
+        }
+        return creep.harvest(target);
+      }
     }
-    return not_found(creep.name);
+    return not_found(creep.memory.role as string);
   },
   [Role.Lorry]: function(creep) {
-    let resources: ResourceConstant[] = [];
-    for (let resource of RESOURCES_ALL) {
-      if (creep.store.getUsedCapacity(resource) > 0) resources.push(resource);
-    }
     if (creep.memory.working) {
+      let resources: ResourceConstant[] = [];
+      for (let resource of RESOURCES_ALL) {
+        if (creep.store.getUsedCapacity(resource) > 0) resources.push(resource);
+      }
       for (let range = 1; range < ROOMSIZE; range++) {
-        // let build = creep.pos.findBuildTarget(range);
-        // if (build) return creep.build(build);
-        // let repair = creep.pos.findRepairTarget(range);
-        // if (repair) return creep.repair(repair);
-
         for (let resource of resources) {
           let transfer = creep.pos.findTransferTargetPrimary(range, resource);
-          if (transfer) return creep.transfer(transfer, resource);
+          if (transfer) {
+            if (transfer instanceof Creep)
+              return creep.transfer(
+                transfer,
+                resource,
+                creep.store.getUsedCapacity(resource) / 2,
+              );
+            return creep.transfer(transfer, resource);
+          }
         }
       }
-      // let wall = creep.pos.findWallRepairTarget();
-      // if (wall) return creep.repair(wall);
 
-      for (let resource of resources) {
+      for (const resource of resources) {
         let transfer = creep.pos.findTransferTargetSecondary(resource);
-        if (transfer) return creep.transfer(transfer, resource);
+        if (transfer) {
+          if (transfer instanceof Creep)
+            return creep.transfer(
+              transfer,
+              resource,
+              creep.store.getUsedCapacity(resource) / 2,
+            );
+          return creep.transfer(transfer, resource);
+        }
       }
     } else {
       // Get energy
-      for (let range = 0; range < ROOMSIZE; range++) {
-        let pickup = creep.pos.findPickupTarget(range);
-        if (pickup) return creep.pickup(pickup);
+      for (let resource of RESOURCES_ALL) {
+        for (let range = 0; range < ROOMSIZE; range++) {
+          let pickup = creep.pos.findPickupTarget(range, resource);
+          if (pickup) return creep.pickup(pickup);
 
-        for (let resource of RESOURCES_ALL) {
           let withdraw = creep.pos.findWithdrawTargetPrimary(range, resource);
           if (withdraw) return creep.withdraw(withdraw, resource);
         }
       }
-      for (let resource of RESOURCES_ALL) {
+      for (const resource of RESOURCES_ALL) {
         let withdraw = creep.pos.findWithdrawTargetSecondary(resource);
         if (withdraw) return creep.withdraw(withdraw, resource);
       }
     }
-    return not_found(creep.name);
+    return not_found(creep.memory.role as string);
   },
   [Role.Worker]: function(creep) {
     let resources: ResourceConstant[] = [];
@@ -128,18 +151,22 @@ const Actions: {
     }
     if (creep.memory.working) {
       for (let range = 1; range < ROOMSIZE; range++) {
-        let build = creep.pos.findBuildTarget(range);
-        if (build) return creep.build(build);
-        let repair = creep.pos.findRepairTarget(range);
-        if (repair) return creep.repair(repair);
+        if (_.contains(resources, RESOURCE_ENERGY)) {
+          let build = creep.pos.findBuildTarget(range);
+          if (build) return creep.build(build);
+          let repair = creep.pos.findRepairTarget(range);
+          if (repair) return creep.repair(repair);
+        }
 
         for (let resource of resources) {
           let transfer = creep.pos.findTransferTargetPrimary(range, resource);
           if (transfer) return creep.transfer(transfer, resource);
         }
       }
-      let wall = creep.pos.findWallRepairTarget();
-      if (wall) return creep.repair(wall);
+      if (_.contains(resources, RESOURCE_ENERGY)) {
+        let wall = creep.pos.findWallRepairTarget();
+        if (wall) return creep.repair(wall);
+      }
 
       for (let resource of resources) {
         let transfer = creep.pos.findTransferTargetSecondary(resource);
@@ -151,13 +178,12 @@ const Actions: {
     } else {
       // Get energy
       for (let range = 0; range < ROOMSIZE; range++) {
-        let pickup = creep.pos.findPickupTarget(range);
-        if (pickup) return creep.pickup(pickup);
-
         let dismantle = creep.pos.findDismantleTarget(range);
         if (dismantle) return creep.dismantle(dismantle);
-
         for (let resource of RESOURCES_ALL) {
+          let pickup = creep.pos.findPickupTarget(range, resource);
+          if (pickup) return creep.pickup(pickup);
+
           let withdraw = creep.pos.findWithdrawTargetPrimary(range, resource);
           if (withdraw) return creep.withdraw(withdraw, resource);
         }
@@ -170,7 +196,7 @@ const Actions: {
         if (withdraw) return creep.withdraw(withdraw, resource);
       }
     }
-    return not_found(creep.name);
+    return not_found(creep.memory.role as string);
   },
   [Role.Attacker]: function(creep) {
     for (let range = 0; range < ROOMSIZE; range++) {
@@ -181,10 +207,13 @@ const Actions: {
       let attack = creep.pos.findAttackTarget(range);
       if (attack) return creep.attack(attack);
     }
-    let rally = Game.flags.rally;
-    if (rally) return creep.travelTo(rally) as ScreepsReturnCode;
+    let rally = creep.pos.findRallyPoint();
+    if (rally) {
+      creep.memory.targetId = rally.id;
+      return creep.travelTo(rally) as ScreepsReturnCode;
+    }
 
-    return not_found(creep.name);
+    return not_found(creep.memory.role as string);
   },
   [Role.Healer]: function(creep) {
     for (let range = 0; range < ROOMSIZE; range++) {
@@ -201,7 +230,7 @@ const Actions: {
     let rally = Game.flags.rally;
     if (rally) return creep.travelTo(rally) as ScreepsReturnCode;
 
-    return not_found(creep.name);
+    return not_found(creep.memory.role as string);
   },
   [Role.Claimer]: function(creep) {
     let target = creep.pos.findClaimTarget();
@@ -213,7 +242,7 @@ const Actions: {
         return code;
       }
     }
-    return not_found(creep.name);
+    return not_found(creep.memory.role as string);
   },
 };
 
@@ -264,7 +293,10 @@ function setState(creep: Creep) {
   }
 
   if (creep.memory.role !== Role.Miner && creep.memory.role !== Role.Attacker) {
-    if (creep.memory.working && creep.store.getUsedCapacity() === 0) {
+    if (
+      creep.memory.working &&
+      creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0
+    ) {
       creep.memory.working = false;
     } else if (!creep.memory.working && creep.store.getFreeCapacity() === 0) {
       creep.memory.working = true;

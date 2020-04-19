@@ -13,8 +13,11 @@ interface RoomPosition {
 
   // Things that get energy
   findDismantleTarget(range: number): Structure | void;
-  findHarvestTarget(range: number): Source | Mineral | Deposit | void;
-  findPickupTarget(range: number): Resource | void;
+  findHarvestTarget(
+    range: number,
+    resource?: ResourceConstant,
+  ): Source | Mineral | Deposit | void;
+  findPickupTarget(range: number, resource: ResourceConstant): Resource | void;
   findWithdrawTargetPrimary(
     range: number,
     resource?: ResourceConstant,
@@ -30,10 +33,10 @@ interface RoomPosition {
   // Things that require Attack or Ranged Attack part
   findAttackTarget(range: number): Creep | PowerCreep | Structure | void;
   shouldMassAttack(): boolean;
+  findRallyPoint(): StructureRampart | Flag | void;
 
   // Things that require heal part
   findHealTarget(range: number): Creep | PowerCreep | void;
-  shouldMassHeal(): boolean;
 
   // Other things
   findPullTarget(range: number): Creep | void;
@@ -69,31 +72,37 @@ RoomPosition.prototype.findDismantleTarget = function(range) {
   return;
 };
 
-RoomPosition.prototype.findHarvestTarget = function(range) {
-  let source = this.findInRange(FIND_SOURCES_ACTIVE, range, {
-    filter: s => !s.claimed(),
-  })[0];
-  if (source) return source;
+RoomPosition.prototype.findHarvestTarget = function(range, resource) {
+  if (!resource || resource === RESOURCE_ENERGY) {
+    let source = this.findInRange(FIND_SOURCES_ACTIVE, range, {
+      filter: s => !s.claimed(),
+    })[0];
+    if (source) return source;
+  }
 
   let mineral = this.findInRange(FIND_MINERALS, range, {
     filter: s =>
       s.pos.findInRange(FIND_STRUCTURES, 0, {
         filter: s => s instanceof StructureExtractor && !s.claimed(),
-      }).length > 0,
+      }).length > 0 &&
+      (!resource || s.mineralType === resource),
   })[0];
   if (mineral) return mineral;
 
   let deposit = this.findInRange(FIND_DEPOSITS, range, {
-    filter: s => s.cooldown <= range && !s.claimed(),
+    filter: s =>
+      s.cooldown <= range &&
+      !s.claimed() &&
+      (!resource || s.depositType === resource),
   })[0];
   if (deposit) return deposit;
 
   return;
 };
 
-RoomPosition.prototype.findPickupTarget = function(range) {
+RoomPosition.prototype.findPickupTarget = function(range, resource) {
   return this.findInRange(FIND_DROPPED_RESOURCES, range, {
-    filter: s => !s.claimed(),
+    filter: s => !s.claimed() && (!resource || resource === s.resourceType),
   })[0];
 };
 
@@ -144,24 +153,6 @@ RoomPosition.prototype.findHealTarget = function(range) {
   return;
 };
 
-RoomPosition.prototype.shouldMassHeal = function() {
-  let targets: (Creep | PowerCreep)[] = [];
-
-  for (let creep of this.findInRange(FIND_MY_CREEPS, 3, {
-    filter: s => s.hits < s.hitsMax,
-  })) {
-    targets.push(creep);
-  }
-
-  for (let creep of this.findInRange(FIND_MY_POWER_CREEPS, 3, {
-    filter: s => s.hits < s.hitsMax,
-  })) {
-    targets.push(creep);
-  }
-
-  return targets.length > 1;
-};
-
 RoomPosition.prototype.findRepairTarget = function(range) {
   return this.findInRange(FIND_STRUCTURES, range, {
     filter: s => s.hits < s.hitsMax,
@@ -209,13 +200,6 @@ RoomPosition.prototype.findTransferTargetPrimary = function(range, resource) {
   })[0];
   if (structure) return structure;
 
-  let creep = this.findInRange(FIND_MY_CREEPS, range, {
-    filter: s =>
-      s.getActiveBodyparts(CARRY) > 0 &&
-      s.store.getUsedCapacity(resource) === 0,
-  })[0];
-  if (creep) return creep;
-
   let powerCreep = this.findInRange(FIND_MY_POWER_CREEPS, range, {
     filter: s => s.store.getFreeCapacity(resource) > 0,
   })[0];
@@ -224,14 +208,20 @@ RoomPosition.prototype.findTransferTargetPrimary = function(range, resource) {
 };
 
 RoomPosition.prototype.findTransferTargetSecondary = function(resource) {
+  let creep = this.findClosestByPath(FIND_MY_CREEPS, {
+    filter: s =>
+      s.getActiveBodyparts(CARRY) > 0 && s.store.getFreeCapacity(resource) > 0,
+  });
+  if (creep) return creep;
+
   let structure = this.findClosestByPath(FIND_STRUCTURES, {
     filter: s => {
       let store = (s as { store: GenericStore }).store;
       if (!store) return false;
-      let capacity = store.getFreeCapacity(resource);
+      let freeSpace = store.getFreeCapacity(resource);
       // If there is no capacity what does that mean?
-      if (!capacity) return false;
-      return capacity > 0;
+      if (!freeSpace) return false;
+      return freeSpace > 0;
     },
   });
   if (structure) return structure;
@@ -241,18 +231,20 @@ RoomPosition.prototype.findTransferTargetSecondary = function(resource) {
 
 RoomPosition.prototype.findWithdrawTargetPrimary = function(range, resource) {
   let tombstone = this.findInRange(FIND_TOMBSTONES, range, {
-    filter: s => s.store.getUsedCapacity(resource) > 0,
+    filter: s => s.store.getUsedCapacity(resource) > 0 && !s.claimed(),
   })[0];
   if (tombstone) return tombstone;
 
   let ruin = this.findInRange(FIND_RUINS, range, {
-    filter: s => s.store.getUsedCapacity(resource) > 0,
+    filter: s => s.store.getUsedCapacity(resource) > 0 && !s.claimed(),
   })[0];
   if (ruin) return ruin;
 
   let container = this.findInRange(FIND_STRUCTURES, range, {
     filter: s =>
-      s instanceof StructureContainer && s.store.getUsedCapacity(resource) > 0,
+      s instanceof StructureContainer &&
+      s.store.getUsedCapacity(resource) > 0 &&
+      !s.claimed,
   })[0];
   if (container) return container;
   return;
@@ -262,6 +254,7 @@ RoomPosition.prototype.findWithdrawTargetSecondary = function(resource) {
   // Secondary withdraw targets are Storage and Links
   let structure = this.findClosestByPath(FIND_STRUCTURES, {
     filter: s => {
+      if (s.claimed()) return false;
       if (!(s instanceof StructureStorage || s instanceof StructureLink))
         return false;
       let store = s.store;
@@ -286,4 +279,13 @@ RoomPosition.prototype.findWallRepairTarget = function() {
     if (wall.hits < target.hits) target = wall;
   }
   return target;
+};
+
+RoomPosition.prototype.findRallyPoint = function() {
+  let rampart = this.findClosestByPath(FIND_MY_STRUCTURES, {
+    filter: s => s instanceof StructureRampart && !s.claimed(),
+  }) as StructureRampart;
+  if (rampart) return rampart;
+
+  return Game.flags.rally;
 };

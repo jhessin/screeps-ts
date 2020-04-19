@@ -23,7 +23,7 @@ StructureSpawn.prototype.spawnRole = function(role, emergency = false) {
     }
     if (endingBody.length < 2) return ERR_NOT_ENOUGH_ENERGY;
     return this.spawnCreep(endingBody, name, {
-      memory: { room },
+      memory: { room, role },
     });
   }
   if (role === Role.Scout) {
@@ -46,7 +46,7 @@ StructureSpawn.prototype.spawnRole = function(role, emergency = false) {
   }
 
   return this.spawnCreep(endingBody, name, {
-    memory: { room },
+    memory: { room, role },
   });
 };
 
@@ -66,7 +66,7 @@ StructureSpawn.prototype.run = function() {
   minMiners += this.room.find(FIND_STRUCTURES, {
     filter: s => s instanceof StructureExtractor,
   }).length;
-  let minLorries = Math.floor(totalEnergy / 100);
+  let minLorries = minMiners;
 
   // First spawn emergencies
   if (miners.length === 0) return this.spawnRole(Role.Miner, true);
