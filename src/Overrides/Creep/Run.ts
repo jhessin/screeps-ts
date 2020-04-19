@@ -298,23 +298,35 @@ function runExistingAction(creep: Creep): ScreepsReturnCode | false {
 
   switch (action) {
     case 'attack':
+      return creep.attack(target);
     case 'attackController':
+      return creep.attackController(target);
     case 'build':
+      return creep.build(target);
     case 'claimController':
+      return creep.claimController(target);
     case 'dismantle':
+      return creep.dismantle(target);
     case 'harvest':
+      return creep.harvest(target);
     case 'heal':
+      return creep.heal(target);
     case 'pickup':
+      return creep.pickup(target);
     case 'reserveController':
+      return creep.reserveController(target);
     case 'upgradeController':
+      return creep.upgradeController(target);
     case 'generateSafeMode':
+      return creep.generateSafeMode(target);
     case 'pull':
-      return creep[action](target);
+      return creep.pull(target);
     case 'transfer':
+      return creep.transfer(target, resource);
     case 'withdraw':
-      return creep[action](target, resource);
+      return creep.withdraw(target, resource);
     case 'signController':
-      return creep[action](target, 'Claimed by Grillbrick!');
+      return creep.signController(target, 'Claimed by Grillbrick!');
     default:
       return false;
   }
