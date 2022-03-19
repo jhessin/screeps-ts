@@ -1,4 +1,5 @@
 import { ErrorMapper } from "utils/ErrorMapper";
+import { Harvester, Upgrader, Builder } from "roles";
 
 declare global {
   /*
@@ -25,6 +26,7 @@ declare global {
   namespace NodeJS {
     interface Global {
       log: any;
+      Spawn1: StructureSpawn;
     }
   }
 }
@@ -32,7 +34,14 @@ declare global {
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
-  console.log(`Current game tick is ${Game.time}`);
+  // console.log(`Current game tick is ${Game.time}`);
+  global.Spawn1 = Game.spawns["Spawn1"];
+
+  for (const creep of Object.values(Game.creeps)) {
+    if (creep.memory.role === "harvester") Harvester.run(creep);
+    else if (creep.memory.role === "upgrader") Upgrader.run(creep);
+    else if (creep.memory.role === "builder") Builder.run(creep);
+  }
 
   // Automatically delete memory of missing creeps
   for (const name in Memory.creeps) {
