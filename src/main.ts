@@ -1,5 +1,6 @@
 import { ErrorMapper } from "utils/ErrorMapper";
 import { Harvester, Upgrader, Builder } from "roles";
+import { Roles } from "enums";
 
 declare global {
   /*
@@ -17,8 +18,9 @@ declare global {
   }
 
   interface CreepMemory {
-    role: string;
+    role: Roles;
     room: string;
+    target?: Structure;
     working: boolean;
   }
 
@@ -26,7 +28,7 @@ declare global {
   namespace NodeJS {
     interface Global {
       log: any;
-      Spawn1: StructureSpawn;
+      // Anything you want to run in the command line should be added here.
     }
   }
 }
@@ -35,12 +37,14 @@ declare global {
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
   // console.log(`Current game tick is ${Game.time}`);
-  global.Spawn1 = Game.spawns["Spawn1"];
+  for (const [name, room] of Object.entries(Game.rooms)) {
+    console.log(`Room ${name} has ${room.energyAvailable} energy available.`);
+  }
 
-  for (const creep of Object.values(Game.creeps)) {
-    if (creep.memory.role === "harvester") Harvester.run(creep);
-    else if (creep.memory.role === "upgrader") Upgrader.run(creep);
-    else if (creep.memory.role === "builder") Builder.run(creep);
+  for (const [_name, creep] of Object.entries(Game.creeps)) {
+    if (creep.memory.role === Roles.Harvester) Harvester.run(creep);
+    else if (creep.memory.role === Roles.Upgrader) Upgrader.run(creep);
+    else if (creep.memory.role === Roles.Builder) Builder.run(creep);
   }
 
   // Automatically delete memory of missing creeps
